@@ -1,0 +1,163 @@
+---
+title: "A quick tour of mclustAddons"
+author: "Luca Scrucca"
+date: "`r format(Sys.time(), '%d %b %Y')`"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+    number_sections: false
+    css: "vignette.css"
+vignette: >
+  %\VignetteIndexEntry{A quick tour of mclustAddons}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+opts_chunk$set(fig.align = "center", 
+               out.width = "80%",
+               fig.width = 7, 
+               fig.height = 6,
+               dev.args = list(pointsize=12),
+               par = TRUE, # needed for setting hook 
+               collapse = TRUE, # collapse input & output code in chunks
+               warning = FALSE)
+
+knit_hooks$set(par = function(before, options, envir)
+  { if(before && options$fig.show != "none") 
+       par(family = "sans", mar=c(4.1,4.1,1.1,1.1), mgp=c(3,1,0), tcl=-0.5)
+})
+set.seed(1) # for exact reproducibility
+```
+       
+# Introduction
+
+**mclustAddons** is a contributed R package that extends the functionality available in the **mclust** package (Scrucca et al. 2016).  
+In particular, the following methods are included:
+
+- density estimation for data with bounded support;
+
+- modal clustering using modal EM algorithm for Gaussian mixtures.
+
+This document gives a quick tour of **mclustAddons** (version `r packageVersion("mclustAddons")`). It was written in [R Markdown](https://rmarkdown.rstudio.com), using the [knitr](https://cran.r-project.org/package=knitr) package for production. 
+
+References on the methodologies implemented are provided by `citation("mclustAddons")`.
+See also at the end of this document.
+
+```{r}
+library(mclustAddons)
+```
+
+# Density estimation for data with bounded support
+
+## Univariate case with lower bound
+
+```{r}
+x <- rchisq(200, 3)
+xgrid <- seq(-2, max(x), length=1000)
+f <- dchisq(xgrid, 3)  # true density
+dens <- densityMclustBounded(x, lbound = 0)
+summary(dens, parameters = TRUE)
+plot(dens, what = "density")
+lines(xgrid, f, lty = 2)
+plot(dens, what = "density", data = x, breaks = 15)
+```
+
+## Univariate case with lower & upper bounds
+
+```{r}
+x <- rbeta(200, 5, 1.5)
+xgrid <- seq(-0.1, 1.1, length=1000)
+f <- dbeta(xgrid, 5, 1.5)  # true density
+dens <- densityMclustBounded(x, lbound = 0, ubound = 1)
+summary(dens, parameters = TRUE)
+plot(dens, what = "density")
+plot(dens, what = "density", data = x, breaks = 11)
+```
+
+## Bivariate case with lower bounds
+
+```{r}
+x1 <- rchisq(200, 3)
+x2 <- 0.5*x1 + sqrt(1-0.5^2)*rchisq(200, 5)
+x <- cbind(x1, x2)
+dens <- densityMclustBounded(x, lbound = c(0,0))
+summary(dens, parameters = TRUE)
+plot(dens, what = "BIC")
+plot(dens, what = "density")
+points(x, cex = 0.3)
+abline(h = 0, v = 0, lty = 3)
+plot(dens, what = "density", type = "hdr")
+abline(h = 0, v = 0, lty = 3)
+plot(dens, what = "density", type = "persp")
+```
+
+## Suicide data
+
+The data consist in the lengths of 86 spells of psychiatric treatment undergone by control patients in a suicide study (Silverman, 1986).
+
+```{r}
+data("suicide")
+dens <- densityMclustBounded(suicide, lbound = 0)
+summary(dens, parameters = TRUE)
+plot(dens, what = "density", 
+     lwd = 2, col = "dodgerblue2",
+     data = suicide, breaks = 15, 
+     xlab = "Length of psychiatric treatment")
+rug(suicide)
+```
+
+## Racial data
+
+This dataset provides the proportion of white student enrollment in 56 school districts in Nassau County (Long Island, New York), for the 1992-1993 school year (Simonoff 1996, Sec. 3.2).
+
+```{r}
+data("racial")
+x <- racial$PropWhite
+dens <- densityMclustBounded(x, lbound = 0, ubound = 1)
+summary(dens, parameters = TRUE)
+plot(dens, what = "density", 
+     lwd = 2, col = "dodgerblue2",
+     data = x, breaks = 15, 
+     xlab = "Proportion of white student enrolled in schools")
+rug(x)
+```
+
+<br><br><br>
+
+# Modal clustering using MEM algorithm for Gaussian mixtures
+
+## Simulated datasets
+
+```{r}
+data(Baudry_etal_2010_JCGS_examples)
+GMM <- Mclust(ex4.1)
+plot(GMM, what = "classification")
+MEM <- MclustMEM(GMM)
+summary(MEM)
+plot(MEM)
+plot(MEM, addPoints = FALSE)
+```
+
+```{r}
+GMM <- Mclust(ex4.4.2)
+plot(GMM, what = "classification")
+MEM <- MclustMEM(GMM)
+summary(MEM)
+plot(MEM)
+plot(MEM, addDensity = FALSE)
+```
+
+
+# References
+
+Scrucca L. (2019) A transformation-based approach to Gaussian mixture density estimation for bounded data, *Biometrical Journal*, 61:4, 873–888. https://doi.org/10.1002/bimj.201800174
+
+Scrucca L. (2021) A fast and efficient Modal EM algorithm for Gaussian mixtures. *Statistical Analysis and Data Mining*, 14:4, 305–314. https://doi.org/10.1002/sam.11527
+
+----
+
+```{r}
+sessionInfo()
+```

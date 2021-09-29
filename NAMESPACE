@@ -1,0 +1,34 @@
+useDynLib(mclustAddons, .registration = TRUE)
+
+# importFrom(Rcpp, evalCpp)
+# exportPattern("^[[:alpha:]]+")
+
+# Import all packages listed as Imports or Depends
+import("stats", "graphics", "grDevices", "utils", "Rcpp",
+       "mclust", "methods", "foreach", "iterators")
+
+# Exported functions and methods
+
+export("densityMclustBounded", 
+       "print.densityMclustBounded",
+       "summary.densityMclustBounded",
+       "print.summary.densityMclustBounded",
+       "plot.densityMclustBounded",
+       "predict.densityMclustBounded")
+S3method("print", "densityMclustBounded")
+S3method("summary", "densityMclustBounded")
+S3method("print", "summary.densityMclustBounded")
+S3method("plot", "densityMclustBounded")
+S3method("predict", "densityMclustBounded")
+
+export("GaussianMixtureMEM",
+       "MclustMEM",
+       "print.MclustMEM",
+       "summary.MclustMEM",
+       "print.summary.MclustMEM",
+       "plot.MclustMEM")
+S3method("print", "MclustMEM")
+S3method("summary", "MclustMEM")
+S3method("print", "summary.MclustMEM")
+S3method("plot", "MclustMEM")
+

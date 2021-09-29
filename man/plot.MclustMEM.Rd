@@ -1,0 +1,73 @@
+\name{plot.MclustMEM}
+\alias{plot.MclustMEM}
+
+\title{Plotting method for modal-clustering based on Gaussian Mixtures}
+
+\description{
+Plots for \code{MclustMEM} objects.
+}
+
+\usage{
+\method{plot}{MclustMEM}(x, dimens = NULL, addDensity = TRUE, addPoints = TRUE, 
+     symbols = NULL, colors = NULL, cex = NULL, 
+     labels = NULL, cex.labels = NULL, gap = 0.2,
+    \dots)
+}
+
+\arguments{
+\item{x}{An object of class \code{"densityMclustBounded"} obtained from a call to \code{\link{densityMclustBounded}}.}
+
+\item{dimens}{A vector of integers specifying the dimensions of the coordinate projections.}
+
+\item{addDensity}{A logical indicating whether or not to add density estimates to the plot.}
+
+\item{addPoints}{A logical indicating whether or not to add data points to the plot.}
+
+\item{symbols}{Either an integer or character vector assigning a plotting symbol to each unique class in \code{classification}. Elements in \code{symbols} correspond to classes in order of appearance in the sequence of observations (the order used by the function \code{unique}). The default is given by \code{mclust.options("classPlotSymbols")}.}
+
+\item{colors}{Either an integer or character vector assigning a color to each unique class in \code{classification}. Elements in \code{colors} correspond to classes in order of appearance in the sequence of observations (the order used by the function \code{unique}). The default is given by \code{mclust.options("classPlotColors")}.}
+
+\item{cex}{A vector of numerical values specifying the size of the plotting symbol for each unique class in \code{classification}. By default \code{cex = 1} for all classes is used.}
+
+\item{labels}{A vector of character strings for labelling the variables. The default is to use the column dimension names of \code{data}.}
+
+\item{cex.labels}{A numerical value specifying the size of the text labels.}
+
+\item{gap}{A numerical argument specifying the distance between subplots (see \code{\link{pairs}}).}
+
+\item{\dots}{Further arguments passed to or from other methods.}
+}
+
+\value{No return value, called for side effects.}
+
+\seealso{
+\code{\link{MclustMEM}}.
+}
+
+\author{Luca Scrucca}
+
+\references{
+Scrucca L. (2021) A fast and efficient Modal EM algorithm for Gaussian mixtures. \emph{Statistical Analysis and Data Mining}, 14:4, 305–314. https://doi.org/10.1002/sam.11527
+}
+
+\examples{\donttest{
+# 1-d example
+GMM <- Mclust(iris$Petal.Length)
+MEM <- MclustMEM(GMM)
+plot(MEM)
+
+# 2-d example
+data(Baudry_etal_2010_JCGS_examples)
+GMM <- Mclust(ex4.1)
+MEM <- MclustMEM(GMM)
+plot(MEM)
+plot(MEM, addPoints = FALSE)
+plot(MEM, addDensity = FALSE)
+
+# 3-d example
+GMM <- Mclust(ex4.4.2)
+MEM <- MclustMEM(GMM)
+plot(MEM)
+plot(MEM, addPoints = FALSE)
+plot(MEM, addDensity = FALSE)
+}}
