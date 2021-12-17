@@ -17,6 +17,7 @@ extern SEXP _mclustAddons_colSum(SEXP);
 extern SEXP _mclustAddons_powerTransform(SEXP, SEXP, SEXP);
 extern SEXP _mclustAddons_rangepowerTransformDeriv_lb(SEXP, SEXP, SEXP, SEXP);
 extern SEXP _mclustAddons_rangepowerTransformDeriv_lub(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _mclustAddons_rangepowerTransformDeriv_unb(SEXP, SEXP);
 extern SEXP _mclustAddons_rangeTransform(SEXP, SEXP, SEXP);
 extern SEXP _mclustAddons_rowMax(SEXP);
 extern SEXP _mclustAddons_rowMax_sugar(SEXP);
@@ -28,6 +29,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_mclustAddons_powerTransform",               (DL_FUNC) &_mclustAddons_powerTransform,               3},
     {"_mclustAddons_rangepowerTransformDeriv_lb",  (DL_FUNC) &_mclustAddons_rangepowerTransformDeriv_lb,  4},
     {"_mclustAddons_rangepowerTransformDeriv_lub", (DL_FUNC) &_mclustAddons_rangepowerTransformDeriv_lub, 6},
+    {"_mclustAddons_rangepowerTransformDeriv_unb", (DL_FUNC) &_mclustAddons_rangepowerTransformDeriv_unb, 2},
     {"_mclustAddons_rangeTransform",               (DL_FUNC) &_mclustAddons_rangeTransform,               3},
     {"_mclustAddons_rowMax",                       (DL_FUNC) &_mclustAddons_rowMax,                       1},
     {"_mclustAddons_rowMax_sugar",                 (DL_FUNC) &_mclustAddons_rowMax_sugar,                 1},

@@ -42,12 +42,10 @@ GaussianMixtureMEM <- function(data, pro, mu, sigma,
   if(d > 1)
   { 
     invsigma <- cholsigma <- array(as.double(NA), dim(sigma))
-    # detsigma <- rep(as.double(NA), length.out = G)
     for(k in 1:G)
     {
       cholsigma[,,k] <- chol(sigma[,,k])
       invsigma[,,k]  <- chol2inv(cholsigma[,,k])
-      # detsigma[k]    <- prod(diag(cholsigma[,,k])^2)
     }
     par$variance$cholsigma <- cholsigma
     par$variance$sigma     <- sigma
@@ -235,7 +233,7 @@ MclustMEM <- function(mclustObject, data = NULL, ...)
   return(obj)
 }
 
-print.MclustMEM <- function(x, digits = getOption("digits")-3, ...)
+print.MclustMEM <- function(x, digits = getOption("digits"), ...)
 {
   if(!is.null(cl <- x$call))
   { 
@@ -260,7 +258,7 @@ summary.MclustMEM <- function(object, ...)
   return(out)
 }
 
-print.summary.MclustMEM <- function(x, digits = getOption("digits")-3, ...)
+print.summary.MclustMEM <- function(x, digits = getOption("digits"), ...)
 {
   
   if(!requireNamespace("cli", quietly = TRUE) |
@@ -466,27 +464,30 @@ connectedComponents <- function(data, eps = 1e-3)
 	# start
 	K <- 1 
 	clusters[1] <- 1
-	C[1,] <- data[1,]
-	# loop over remaining data points
-	for(i in 2:n)
+	C[1,] <- data[1,,drop=FALSE]
+	if(n > 1)
 	{
-		assigned <- FALSE
-		for(k in 1:K)
-		{
-		  d <- distance(data[i,], C[k,])
-			if(d < eps)
-			{
-				clusters[i] <- k
-				assigned <- TRUE
-				break
-			}
-		}
-		if(!assigned)
-		{
-		  K <- K + 1
-			clusters[i] <- K
-			C[K,] <- data[i,]
-		}
+	  # loop over remaining data points
+	  for(i in 2:n)
+	  {
+	    assigned <- FALSE
+	    for(k in 1:K)
+	    {
+	      d <- distance(data[i,], C[k,])
+	      if(d < eps)
+	      {
+	        clusters[i] <- k
+	        assigned <- TRUE
+	        break
+	      }
+	    }
+	    if(!assigned)
+	    {
+	      K <- K + 1
+	      clusters[i] <- K
+	      C[K,] <- data[i,]
+	    }
+	  }
 	}
 	C <- C[1:K,,drop=FALSE]
 	dimnames(C) <- list(paste0("mode", 1:K), colnames(data))

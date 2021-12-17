@@ -1,3 +1,8 @@
+# mclustAddons 0.6 (2021-12)
+
+- Bug fixes.
+- Allowed to have both `lbound = NULL` and `ubound = NULL`, in which case only power transformation is performed.
+
 # mclustAddons 0.5 (2021-09)
 
 - Release submitted to CRAN.

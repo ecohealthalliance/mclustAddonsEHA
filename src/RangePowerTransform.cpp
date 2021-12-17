@@ -213,6 +213,16 @@ Rcpp::NumericVector
 # system.time(rangepowerTransformDeriv_lub(x, lambda = -1, lbound = 0, ubound = 1))
 */ 
 
+// [[Rcpp::export]]
+Rcpp::NumericVector 
+  rangepowerTransformDeriv_unb(NumericVector x,
+                               double lambda = 1)
+{
+  NumericVector tx = x;
+  NumericVector dx = pow(tx, lambda - 1);
+  return(dx);
+}
+
 //
 // Maximum by rows for numerical matrices
 // (much faster than using apply(..., 1, max))

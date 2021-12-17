@@ -133,7 +133,7 @@ densityMclustBounded <- function(data,
   return(mod)
 }
 
-print.densityMclustBounded <- function (x, digits = getOption("digits")-3, ...) 
+print.densityMclustBounded <- function (x, digits = getOption("digits"), ...) 
 {
   object <- x
   cat("'", class(object)[1], "' model object:", sep = "")
@@ -186,7 +186,7 @@ summary.densityMclustBounded <- function(object, parameters = FALSE, classificat
   return(obj)
 }
 
-print.summary.densityMclustBounded <- function(x, digits = getOption("digits")-3, ...)
+print.summary.densityMclustBounded <- function(x, digits = getOption("digits"), ...)
 {
   
   if(!requireNamespace("cli", quietly = TRUE) |
@@ -221,7 +221,7 @@ print.summary.densityMclustBounded <- function(x, digits = getOption("digits")-3
   #
   tab <- data.frame("log-likelihood" = x$loglik, "n" = x$n, 
                     "df" = x$df, "BIC" = x$bic, "ICL" = x$icl, 
-                    row.names = "")
+                    row.names = "", check.names = FALSE)
   print(tab, digits = digits)
   #
   cat("\n")
@@ -295,9 +295,13 @@ predict.densityMclustBounded <- function(object, newdata,
   }
 }
 
+# Main Algorithm ----
+
+# old
 densityBounded <- function(data, G, modelName, # z,
                            lambda = NULL,
-                           lbound = NULL, ubound = NULL, epsbound = NULL,
+                           lbound = NULL, ubound = NULL, 
+                           epsbound = NULL,
                            # initialization = NULL, 
                            control = emControl(),
                            optimControl = list(fnscale = -1,
@@ -525,6 +529,234 @@ densityBounded <- function(data, G, modelName, # z,
   return(mod[orderedNames])
 }
 
+# new version
+densityBounded <- function(data, G, modelName,
+                           lambda = NULL,
+                           lbound = NULL, ubound = NULL, 
+                           epsbound = NULL,
+                           control = emControl(),
+                           optimControl = list(fnscale = -1,
+                                               maxit = 10, 
+                                               parscale = 0.1,
+                                               usegr = TRUE),
+                           warn = mclust.options("warn"), 
+                           verbose = FALSE, 
+                           eps = sqrt(.Machine$double.eps),
+                           ...)
+{
+  x <- as.matrix(data)
+  n <- nrow(x)
+  d <- ncol(x)
+  G <- as.integer(G)
+  modelName <- as.character(modelName)
+  
+  # check and set boundaries parameters
+  if(is.null(lbound))   lbound <- rep(-Inf, d)
+  if(is.null(ubound))   ubound <- rep(+Inf, d)
+  if(is.null(epsbound)) epsbound <- rep(as.double(NA), d)
+  for(j in seq(d))
+  { 
+    lb <- if(is.numeric(lbound[j])) lbound[j] else -Inf
+    x[ x[,j] <= lb, j] <- lb # + eps
+    ub <- if(is.numeric(ubound[j])) ubound[j] else +Inf
+    x[ x[,j] >= ub, j] <- ub # - eps
+    if(is.na(epsbound[j]))
+    { 
+      if(is.finite(lb) & is.finite(ub))
+        epsbound[j] <- 0
+      else if(is.finite(lb))
+        epsbound[j] <- quantile(x[,j]-lb, probs=0.01)
+      else if(is.finite(ub))
+        epsbound[j] <- quantile(ub-x[,j], probs=0.01)
+      else epsbound[j] <- 0
+      # beps <- c(quantile(x[,j]-lbound[j], probs=0.01),
+      #           quantile(ubound[j]-x[,j], probs=0.01))
+      # epsbound[j] <- min(abs(beps)[is.finite(beps)])
+    }
+  }
+  
+  # set EM iterations parameters
+  tol <- control$tol[1]
+  itmax <- min(control$itmax[1], 1000)
+  
+  # merge optimControl default with provided args
+  optimControl.default <- eval(formals(densityBounded)$optimControl)
+  optimControl.default[names(optimControl)] <- optimControl
+  optimControl <- optimControl.default; rm(optimControl.default)
+  if(length(optimControl$parscale) != d)
+     optimControl$parscale <- rep(optimControl$parscale[1], d)
+  usegr <- optimControl$usegr; optimControl$usegr <- NULL
+  
+  if(is.null(lambda)) lambda <- c(-3,3)
+  lambdaRange <- if(is.matrix(lambda))  lambda 
+                 else  matrix(lambda, nrow = d, ncol = 2, byrow = TRUE)
+  lambdaFixed <- all(apply(lambdaRange, 1, diff) == 0)
+  # starting value for lambda
+  lambda <- if(lambdaFixed) apply(lambdaRange, 1, mean) else 
+    { 
+      lambda <- rep(1,d)
+      for(j in seq(d))
+      { 
+        lambdaOpt <- optim(par = lambda[j], 
+                           fn = marginalTransfLoglik,
+                           method = "L-BFGS-B",
+                           lower = lambdaRange[j,1],
+                           upper = lambdaRange[j,2],
+                           control = list(fnscale = -1, parscale = 0.1),
+                           # parameters of marginalTransfLoglik()
+                           data = x[,j],
+                           lbound = lbound[j],
+                           ubound = ubound[j],
+                           epsbound = epsbound[j])
+        lambda[j] <- lambdaOpt$par
+      }
+      lambda
+    }
+  lambdaInit <- lambda
+  # initial transformation
+  tx <- matrix(as.double(NA), nrow = n, ncol = d)
+  for(j in seq(d))
+  { 
+    tx[,j] <- rangepowerTransform(x[,j], 
+                                  lbound = lbound[j], 
+                                  ubound = ubound[j],
+                                  lambda = lambda[j]) 
+  }
+  
+  # initialisation using k-means with given G on the transformed variables
+  km <- kmeans(tx, centers = G, nstart = 10)
+  z  <- unmap(km$cluster)
+  # TODO: insert the possibility of a subset. It is needed?
+
+  # start algorithm
+  M_step <- mstep(modelName, data = tx, z = z)
+  if(attributes(M_step)$returnCode < 0)
+  { 
+    if(warn) warning("M-step init problems...")
+    M_step$bic <- NA
+    return(M_step) 
+  }
+  
+  M_step <- c(M_step, list(data = tx))
+  E_step <- do.call("estep", M_step)
+  E_step <- c(E_step, list(data = x, lambda = lambda,
+                           lbound = lbound, ubound = ubound,
+                           epsbound = epsbound))
+  loglik <- do.call("tloglik", E_step)
+  if(is.na(loglik)) 
+    { if(warn) warning("E-step init problems...")
+      E_step$bic <- NA
+      return(E_step) 
+  }
+  
+  loglik0 <- loglik - 0.5*abs(loglik)
+  iter <- 1
+  if(verbose) 
+    { cat("\nG =", G, "  Model =", modelName)
+      cat("\niter =", iter, "  lambda =", lambda, "  loglik =", loglik) }
+  
+  while((loglik - loglik0)/(1+abs(loglik)) > tol & iter < itmax)
+  { 
+    loglik0 <- loglik
+    iter <- iter + 1
+    # optimise tloglik for lambda
+    if(!lambdaFixed)
+      { 
+        # central difference approx to derivative
+        Dtloglik <- function(lambda, ...)
+        {
+          h <- eps*(abs(lambda)+eps)
+          (do.call("tloglik", c(list(lambda = lambda+h), list(...))) +
+            do.call("tloglik", c(list(lambda = lambda-h), list(...))) -
+            2*do.call("tloglik", c(list(lambda = lambda), list(...)))) /
+            (2*h)
+        }
+        
+        lambdaOpt <- try(optim(par = lambda,
+                               fn = tloglik,
+                               gr = if(usegr) Dtloglik else NULL,
+                               method = "L-BFGS-B",
+                               lower = lambdaRange[,1],
+                               upper = lambdaRange[,2],
+                               control = optimControl,
+                               # parameters of tloglik()
+                               data = x,
+                               modelName = modelName,
+                               G = G,
+                               lbound = lbound,
+                               ubound = ubound,
+                               epsbound = epsbound,
+                               parameters = E_step$parameters),
+            silent = TRUE)
+        if(inherits(lambdaOpt, "try-error"))
+          warning("can't perform marginal optimisation of lambda value(s)...")
+        else
+          lambda <- lambdaOpt$par
+    }
+    # transform variables with updated lambda
+    for(j in seq(d))
+    { 
+      tx[,j] <- rangepowerTransform(x[,j], 
+                                    lbound = lbound[j], 
+                                    ubound = ubound[j],
+                                    lambda = lambda[j])
+    }
+    # compute EM-step
+    M_step <- mstep(modelName, data = tx, z = E_step$z)
+    if(attributes(M_step)$returnCode < 0)
+    { 
+      if(warn) warning(attributes(M_step)$WARNING, " ...")
+      break 
+    }
+    M_step <- c(M_step, list(data = tx))
+    E_step <- do.call("estep", M_step) 
+    E_step <- c(E_step, list(data = x, lambda = lambda,
+                             lbound = lbound, ubound = ubound,
+                             epsbound = epsbound))
+    loglik <- do.call("tloglik", E_step)
+    #
+    if(is.na(loglik)) 
+    { 
+      if(warn) warning("EM convergence problems...")
+      break 
+    }
+    if(verbose) 
+      cat("\niter =", iter, "  lambda =", lambda, "  loglik =", loglik)
+  }
+  
+  # collect info & estimates  
+  mod <- E_step
+  mod$data <- x
+  for(j in seq(d))
+  { 
+    tx[,j] <- rangepowerTransform(x[,j], 
+                                  lbound = lbound[j], 
+                                  ubound = ubound[j],
+                                  lambda = lambda[j])
+  }
+  mod$tdata <- tx
+  names(lambda) <- names(lambdaInit) <- colnames(data)
+  mod$lambda <- lambda
+  mod$lambdaInit <- lambdaInit
+  mod$lbound <- lbound 
+  mod$ubound <- ubound 
+  mod$epsbound <- epsbound
+  mod$loglik <- loglik
+  mod$iter <- iter
+  mod$df <- nMclustParams(modelName, d, G) + if(lambdaFixed) 0 else d
+  mod$bic <- 2*loglik - mod$df*log(n)
+  mod$classification <- map(mod$z)
+  mod$uncertainty <- 1 - rowMax(mod$z)
+  mod$density <- do.call("tdens", mod)
+  orderedNames <- c("data", "n", "d", "modelName", "G",
+                    "lbound", "ubound", "epsbound", "lambdaInit",
+                    "tdata", "loglik", "iter", "df", "bic", 
+                    "parameters", "lambda", "z", 
+                    "classification", "uncertainty",
+                    "density")
+  return(mod[orderedNames])
+}
+
 # loglik for data-transformed mixture
 tloglik <- function(data, modelName, G, 
                     lambda = 1, lbound = -Inf, ubound = +Inf, 
@@ -608,9 +840,9 @@ tdens <- function(data, modelName, G,
   return(den)
 }
 
+# marginal transformation loglik 
 marginalTransfLoglik <- function(data, lambda, lbound, ubound, epsbound)
 {
-# Marginal transformation loglik 
   x  <- as.vector(data)
   n  <- length(x)
   tx <- rangepowerTransform(x, 
@@ -627,62 +859,7 @@ marginalTransfLoglik <- function(data, lambda, lbound, ubound, epsbound)
 }
 
 
-cdfDensityBounded <- function(object, data, ngrid = 100, ...)
-{
-  if(!any(class(object) == "densityMclustBounded"))
-    { stop("first argument must be an object of class 'densityMclustBounded'") }
-  
-  if(missing(data))
-    { eval.points <- extendrange(object$data, f = 0.1)
-      eval.points <- seq(eval.points[1], eval.points[2], length.out = ngrid) }
-  else
-    { eval.points <- sort(as.vector(data))
-      ngrid <- length(eval.points) }
-  inrange <- (eval.points > object$lbound & eval.points < object$ubound)
-  teval.points <- rep(NA, ngrid)
-  teval.points[inrange] <- rangepowerTransform(eval.points[inrange], 
-                                               lbound = object$lbound,
-                                               ubound = object$ubound,
-                                               lambda = object$lambda)
-
-  G <- object$G
-  pro <- object$parameters$pro
-  mean <- object$parameters$mean
-  var <- object$parameters$variance$sigmasq
-  if(length(var) < G) var <- rep(var, G)
-  noise <- (!is.null(object$parameters$Vinv))
-
-  cdf <- rep(0, ngrid)
-  for(k in seq(G))
-     { cdf <- cdf + pro[k]*pnorm(teval.points, mean[k], sqrt(var[k])) }
-  if(noise) 
-    cdf <- cdf/sum(pro[seq(G)])
-  cdf[eval.points <= object$lbound] <- 0
-  cdf[eval.points >= object$ubound] <- 1
-  
-  out <- list(x = eval.points, y = cdf)    
-  return(out)
-}
-
-quantileDensityBounded <- function(object, p)
-{
-  if(!any(class(object) == "densityMclustBounded"))
-    { stop("first argument must be an object of class 'densityMclustBounded'") }
-  
-  eval.points <- range(object$lbound, object$data, object$ubound, finite = TRUE)
-  eval.points <- seq(eval.points[1], eval.points[2], length.out = 1000) 
-  cdf <- cdfDensityBounded(object, data = eval.points)
-  q <- approx(cdf$y, cdf$x, xout = p, rule = 2)$y
-  # plot(cdf$y, cdf$x, type = "l"); points(p, q, pch = 20)
-  q[ p < 0 | p > 1] <- NaN
-  q[ p == 0 ] <- object$lbound
-  q[ p == 1 ] <- object$ubound
-  return(q)  
-}
-
-##
-## Plot methods for model-based mixture density estimation for bounded data
-##
+## Plot methods ----
 
 plot.densityMclustBounded <- function(x, what = c("BIC", "density", "diagnostic"),
                                       data = NULL, ...) 
@@ -707,7 +884,7 @@ plot.densityMclustBounded <- function(x, what = c("BIC", "density", "diagnostic"
   
   plot.densityMclustBounded.diagnostic <- function(...)
   { 
-    plotDiagnosticDensityMclustBounded(object, ...) 
+    densityMclustBounded.diagnostic(object, ...) 
   }
   
   if(interactive() & length(what) > 1)
@@ -853,17 +1030,6 @@ plotDensityMclustBounded2 <- function(x, data = NULL, dim = 1:2,
     { z <- sqrt(z)
       z[!is.finite(z)] <- NA
       zlab <- paste("sqrt", zlab) }
-  if(is.null(levels))
-    { 
-      levels <- if(type == "hdr") 
-        # hdrlevels(object$density, prob)
-        sort(c(hdrlevels(na.omit(as.vector(z)), prob), 
-               1.1*max(z, na.rm=TRUE)))
-      else
-        # pretty(object$density, nlevels)
-        pretty(z, nlevels)
-      nlevels <- length(levels)
-    }
  
   switch(type,
          "contour" = 
@@ -878,23 +1044,26 @@ plotDensityMclustBounded2 <- function(x, data = NULL, dim = 1:2,
            }
            fargs <- formals("contour.default")
            dargs <- c(list(x = x1, y = x2, z = z, 
-                           levels = levels,
+                           levels = if(is.null(levels)) 
+                                       pretty(z, nlevels) else levels,
                            col = col, add = TRUE), 
                       args)
            dargs <- dargs[names(dargs) %in% names(fargs)]
            fargs[names(dargs)] <- dargs
            do.call("contour.default", fargs)
-           # abline(v = object$lbound[dim[1]], h = object$lbound[dim[2]], lty = 3)
          },
          "hdr" = 
          {
+           levels <- if(is.null(levels)) 
+                       c(sort(hdrlevels(object$density, prob)), 1.1*max(z)) 
+                     else levels
            plot(x1, x2, type = "n",
                 xlim = xlim, ylim = ylim, 
                 xlab = xlab, ylab = ylab)
            fargs <- formals(".filled.contour")
            dargs <- c(list(x = x1, y = x2, z = z, 
-                          levels = sort(c(levels, max(object$density, z))),
-                          col = color.palette(nlevels)), 
+                          levels = levels,
+                          col = color.palette(length(levels))), 
                       args)
            dargs <- dargs[names(dargs) %in% names(fargs)]
            fargs[names(dargs)] <- dargs
@@ -914,22 +1083,24 @@ plotDensityMclustBounded2 <- function(x, data = NULL, dim = 1:2,
                               args))
            if(addPoints)
              points(data, pch = points.pch, col = points.col, cex = points.cex)
-           # abline(v = object$lbound[dim[1]], h = object$lbound[dim[2]], lty = 3) 
          },
          "persp"   = 
          {
            do.call("persp3D", c(list(x1, x2, z,
                                      xlab = xlab, ylab = ylab, zlab = zlab, 
                                      xlim = xlim, ylim = ylim, 
-                                     nlevels = nlevels, 
-                                     levels = { levels[1] <- 0
+                                     # nlevels = nlevels, 
+                                     levels = { if(is.null(levels)) 
+                                                  levels <- pretty(z, nlevels)
+                                                nlevels <- length(levels)
+                                                levels[1] <- 0
                                                 levels[nlevels] <- max(z, na.rm = TRUE)
                                                 levels },
                                      color.palette = color.palette),
                                 args))
          }
   )
-  invisible(list(x = x1, y = x2, z = z, levels = levels)) # todo: remove
+  invisible()
 }
 
 plotDensityMclustBoundedd <- 
@@ -956,16 +1127,6 @@ plotDensityMclustBoundedd <-
     { data <- as.matrix(data)
       addPoints <- TRUE  }
   
-  if(is.null(levels))
-    { 
-      levels <- if(type == "hdr") 
-        hdrlevels(object$density, prob)
-      else
-        pretty(object$density, nlevels)
-      nlevels <- length(levels)
-    }
-  
-  out <- list()  # todo: remove
   nc <- object$d
   oldpar <- par(mfrow = c(nc, nc), 
                 mar = rep(c(gap,gap/2),each=2), 
@@ -1021,20 +1182,20 @@ plotDensityMclustBoundedd <-
                 if(type == "hdr")
                 {
                   fargs <- formals(".filled.contour")
+                  levels <- if(is.null(levels)) 
+                              c(sort(hdrlevels(object$density, prob)), 1.1*max(z)) 
+                            else levels
                   dargs <- c(list(x = xgrid, y = ygrid, z = z, 
-                                  levels = sort(c(levels, max(object$density, z))),
-                                  col = color.palette(nlevels)), 
+                                  levels = levels,
+                                  col = color.palette(length(levels))),
                              args)
                   dargs <- dargs[names(dargs) %in% names(fargs)]
                   fargs[names(dargs)] <- dargs
                   do.call(".filled.contour", fargs)
                   if(addPoints & (i < j))
-                    { 
-                      points(data[,dim], pch = points.pch, 
-                             col = points.col, cex = points.cex)
-                      # todo: remove
-                      out[[length(out)+1]] <- list(x = xgrid, y = ygrid, 
-                                                   z = z, levels = levels)
+                  { 
+                    points(data[,dim], pch = points.pch, 
+                           col = points.col, cex = points.cex)
                   }
                 } else
                 {
@@ -1043,7 +1204,8 @@ plotDensityMclustBoundedd <-
                            col = points.col, cex = points.cex)
                   fargs <- formals("contour.default")
                   dargs <- c(list(x = xgrid, y = ygrid, z = z, 
-                                  levels = levels,  
+                                  levels = if(is.null(levels)) 
+                                              pretty(z, nlevels) else levels,
                                   col = col, add = TRUE), 
                              args)
                   dargs <- dargs[names(dargs) %in% names(fargs)]
@@ -1059,54 +1221,176 @@ plotDensityMclustBoundedd <-
           }
   }
   #
-  invisible(out)  # todo: remove
+  invisible() 
 }
 
-plotDiagnosticDensityMclustBounded <- function(object, ...) warning("TO DO")
+# Diagnostics ----
 
-
-qqplotDensityMclustBounded <- function(object, envelope = FALSE, grid = TRUE, 
-                                       col = c(1,1), lty = c(1,2), ...)
-{ 
+# cdf (univariate case)
+cdfDensityBounded <- function(object, data, ngrid = 100, ...)
+{
   if(!any(class(object) == "densityMclustBounded"))
     { stop("first argument must be an object of class 'densityMclustBounded'") }
-  if(object$d > 1)
-    { warning("only available for one-dimensional data") }  
-  data <- as.numeric(object$data)
-  n <- length(data)
-  pp <- ppoints(n)
-  q <- quantileDensityBounded(object, pp)
-  # draw Q-Q plot
-  plot(q, sort(data), col = col[1],
-       xlab = "Quantiles from estimated density", 
-       ylab = "Sample quantiles", 
-       panel.first = if(grid) grid(equilogs=FALSE) else NULL,
-       ...)
-  # add qline
-  Q.y <- quantile(sort(data), c(.25,.75))
-  Q.x <- quantileDensityBounded(object, c(.25,.75))
-  b <- (Q.y[2] - Q.y[1])/(Q.x[2] - Q.x[1])
-  a <- Q.y[1] - b*Q.x[1]
-  abline(a, b, untf = TRUE, col = col[2], lty = lty[1])
-  # add pointwise confidence envelope (idea from car:::qqPlot.default)
-  if(envelope)
-    { conf <-  if(is.logical(envelope)) 0.95 else as.numeric(envelope)
-      qconf <- qnorm(1 - (1 - conf)/2)
-      se <- b/predict(object, q)*sqrt(pp*(1 - pp)/n)
-      fit <- a + b*q
-      lines(q, fit, col = col[2], lty = lty[2], lwd = 2)
-      lines(q, fit - qconf*se, col = col[2], lty = lty[2])
-      lines(q, fit + qconf*se, col = col[2], lty = lty[2])
-  }
   
-  out <- list(x = q, y = sort(data))
-  invisible(out)
+  if(missing(data))
+  { 
+    eval.points <- extendrange(object$data, f = 0.1)
+    eval.points <- seq(eval.points[1], eval.points[2], length.out = ngrid) 
+  } else
+  { 
+    eval.points <- sort(as.vector(data))
+    ngrid <- length(eval.points) 
+  }
+  inrange <- (eval.points > object$lbound & eval.points < object$ubound)
+  teval.points <- rep(NA, ngrid)
+  teval.points[inrange] <- rangepowerTransform(eval.points[inrange], 
+                                               lbound = object$lbound,
+                                               ubound = object$ubound,
+                                               lambda = object$lambda)
+  G <- object$G
+  pro <- object$parameters$pro
+  mean <- object$parameters$mean
+  var <- object$parameters$variance$sigmasq
+  if(length(var) < G) var <- rep(var, G)
+  noise <- (!is.null(object$parameters$Vinv))
+
+  cdf <- rep(0, ngrid)
+  for(k in seq(G))
+     { cdf <- cdf + pro[k]*pnorm(teval.points, mean[k], sqrt(var[k])) }
+  if(noise) 
+    cdf <- cdf/sum(pro[seq(G)])
+  cdf[eval.points <= object$lbound] <- 0
+  cdf[eval.points >= object$ubound] <- 1
+  
+  out <- list(x = eval.points, y = cdf)    
+  return(out)
 }
 
-##
-##  Range-Power Transformation
-##
+quantileDensityBounded <- function(object, p, ...)
+{
+  stopifnot(inherits(object, "densityMclustBounded"))
+  if(object$d != 1)
+    stop("quantile function only available for 1-dimensional data")
 
+  # eval.points <- range(object$lbound, object$data, object$ubound, finite = TRUE)
+  # eval.points <- seq(eval.points[1], eval.points[2], length.out = 1000) 
+  # cdf <- cdfDensityBounded(object, data = eval.points)
+  # q <- approx(cdf$y, cdf$x, xout = p, rule = 2)$y
+  # plot(cdf$y, cdf$x, type = "l"); points(p, q, pch = 20)
+  r <- c(ifelse(is.finite(object$lbound), 
+                object$lbound, 0),
+         ifelse(is.finite(object$ubound), 
+                object$ubound, 
+                max(object$data)+diff(range(object$data))))
+  q <- rep(as.double(NA), length(p))
+  for(i in 1:length(p))
+  { 
+    F <- function(x) cdfDensityBounded(object, x)$y - p[i]
+    q[i] <- uniroot(F, interval = r, tol = sqrt(.Machine$double.eps))$root
+  }
+  q[ p < 0 | p > 1] <- NaN
+  q[ p == 0 ] <- object$lbound
+  q[ p == 1 ] <- object$ubound
+  return(q)  
+}
+
+densityMclustBounded.diagnostic <- function(object, 
+                                            type = c("cdf", "qq"), 
+                                            col = c("black", "black"), 
+                                            lwd = c(2,1), lty = c(1,1),
+                                            legend = TRUE, grid = TRUE, 
+                                            ...)
+{
+# Diagnostic plots for density estimation 
+# (only available for the one-dimensional case)
+# 
+# Arguments:
+# object = a 'densityMclustBounded' object
+# type = type of diagnostic plot:
+#   "cdf" = fitted CDF  vs empirical CDF
+#   "qq"  = fitted CDF evaluated over the observed data points vs 
+#           the quantile from a uniform distribution
+#
+# Reference: 
+# Loader C. (1999), Local Regression and Likelihood. New York, Springer, 
+#   pp. 87-90)
+
+  stopifnot(inherits(object, "densityMclustBounded"))
+  if(object$d > 1)
+    { warning("only available for one-dimensional data") 
+      return() }  
+  type <- match.arg(type, c("cdf", "qq"), several.ok = TRUE)
+  # main <- if(is.null(main) || is.character(main)) FALSE else as.logical(main)
+
+  data <- as.numeric(object$data)
+  n <- length(data)
+  cdf <- cdfDensityBounded(object, data = data, ngrid = min(n*10,1000), ...)
+  
+  oldpar <- par(no.readonly = TRUE)
+  if(interactive() & length(type) > 1) 
+    { par(ask = TRUE)
+      on.exit(par(oldpar)) }
+  
+  if(any(type == "cdf"))
+  { # Fitted CDF vs Emprical CDF    
+    empcdf <- ecdf(data)
+    plot(empcdf, do.points = FALSE, verticals = TRUE,
+         col = col[2], lwd = lwd[2], lty = lty[2],
+         xlab = deparse(object$call$data), 
+         ylab = "Cumulative Distribution Function",
+         panel.first = if(grid) grid(equilogs=FALSE) else NULL,
+         main = NULL, ...)
+    # if(main) title(main = "CDF plot", cex.main = 1.1)
+    lines(cdf, col = col[1], lwd = lwd[1], lty = lty[1])
+    rug(data)
+    if(legend)
+    { 
+      legend("bottomright", legend = c("Estimated CDF", "Empirical CDF"), 
+             ncol = 1, inset = 0.05, cex = 0.8,
+             col = col, lwd = lwd, lty = lty) 
+    }
+  }
+  
+  if(any(type == "qq"))
+  { # Q-Q plot
+    q <- quantileDensityBounded(object, p = ppoints(n))
+    plot(q, sort(data),
+         xlab = "Quantiles from estimated density", 
+         ylab = "Sample Quantiles", 
+         panel.first = if(grid) grid(equilogs=FALSE) else NULL,
+         main = NULL, ...)
+    # add qq-line
+    Q.y <- quantile(sort(data), c(.25,.75))
+    Q.x <- quantileDensityBounded(object, c(.25,.75))
+    b <- (Q.y[2] - Q.y[1])/(Q.x[2] - Q.x[1])
+    a <- Q.y[1] - b*Q.x[1]
+    abline(a, b, untf = TRUE, col = 1, lty = 2)
+    # todo: to add pointwise confidence envelope (idea from car:::qqPlot.default)
+    # if(envelope)
+    # { 
+    #   conf <-  if(is.logical(envelope)) 0.95 else as.numeric(envelope)
+    #   qconf <- qnorm(1 - (1 - conf)/2)
+    #   se <- b/predict(object, q)*sqrt(pp*(1 - pp)/n)
+    #   fit <- a + b*q
+    #   lines(q, fit, col = col[2], lty = lty[2], lwd = 2)
+    #   lines(q, fit - qconf*se, col = col[2], lty = lty[2])
+    #   lines(q, fit + qconf*se, col = col[2], lty = lty[2])
+    # }
+    
+    # P-P plot
+    # cdf <- cdfDensityBounded(object, data, ...)
+    # plot(seq(1,n)/(n+1), cdf$y, xlab = "Uniform quantiles",
+    #      ylab = "Cumulative Distribution Function",
+    #      panel.first = if(grid) grid(equilogs=FALSE) else NULL)
+    # abline(0, 1, untf = TRUE, col = 1, lty = 2)
+  }
+
+  invisible()
+} 
+
+## Range-Power Transformation functions ----
+
+# Range-Power transformation 
 rangepowerTransform <- function(x, lbound = -Inf, ubound = +Inf, lambda = 1)
 { 
   x <- as.vector(x)
@@ -1114,11 +1398,46 @@ rangepowerTransform <- function(x, lbound = -Inf, ubound = +Inf, lambda = 1)
   tx <- powerTransform(tx, lambda = lambda)
   return(tx)
 }
-       
-##
-##  Range-Transformation
-##
 
+# Derivative of Range-Power transformation 
+rangepowerTransformDeriv <- function(x, 
+                                     lbound = NULL, 
+                                     ubound = NULL,
+                                     lambda = 1, 
+                                     epsbound = NULL,
+                                     tol = 1e-3)
+{
+  x <- as.vector(x)
+  if(is.null(lbound)) lbound <- -Inf
+  if(is.null(ubound)) ubound <- +Inf
+  if(is.null(epsbound))      
+  { 
+    if(is.finite(lbound) || is.finite(ubound))
+      stop("eps bound missing!") 
+  }
+  
+  if(is.finite(lbound) && is.finite(ubound))
+  { 
+    dx <- rangepowerTransformDeriv_lub(x, lambda = lambda, 
+                                       lbound = lbound,
+                                       ubound = ubound,
+                                       eps = epsbound,
+                                       tol = tol) 
+  } else if(is.finite(lbound))
+  { 
+    dx <- rangepowerTransformDeriv_lb(x, lambda = lambda, 
+                                      lbound = lbound,
+                                      eps = epsbound) 
+  } else
+  {
+    dx <- rangepowerTransformDeriv_unb(x, lambda = lambda)
+  }
+
+  return(dx)
+}
+## R versions of functions implemented in C++ ----
+
+##  Range-Transformation 
 rangeTransform_R <- function(x, lbound = -Inf, ubound = +Inf)
 { 
   if(is.finite(lbound) && is.finite(ubound)) (x - lbound)/(ubound - x)
@@ -1127,10 +1446,7 @@ rangeTransform_R <- function(x, lbound = -Inf, ubound = +Inf)
   else                                       x
 }
 
-##
-##  Power Box-Cox Transformation
-##
-
+##  Power Box-Cox transformation
 powerTransform_R <- function(x, lambda = 1, tol = 1e-3)
 {
   x <- as.vector(x)
@@ -1144,58 +1460,3 @@ powerTransform_R <- function(x, lambda = 1, tol = 1e-3)
   return(z)
 }
 
-rangepowerTransformDeriv_R_old <- function(x, lambda = 1, 
-                                       lbound = NULL, ubound = NULL,
-                                       eps = diff(range(x))/100,
-                                       tol = 1e-3)
-{
-  x <- as.vector(x)
-  if(is.null(lbound)) lbound <- -Inf
-  if(is.null(ubound)) ubound <- +Inf
-  tx <- rangeTransform(x, lbound = lbound, ubound = ubound)
-  dx <- rep(as.double(NA), length = length(tx))
-  #
-  if(is.finite(lbound) && !is.finite(ubound))
-    { # tx = (x-lbound)
-      dx <- tx^(lambda - 1)
-      if(lambda < 1)
-        { # linear interpolation near the boundary
-          b <- (lambda-1)*eps^(lambda-2)
-          a <- eps^(lambda-1) - b*(lbound+eps)
-          dx <- ifelse((x - lbound) >= eps, dx, a+b*x)
-      }
-  }
-  else
-    { dx <- if(abs(lambda) < tol)
-                1/(x-lbound)+1/(ubound-x)
-            else
-                tx^(lambda - 1)*(ubound - lbound)/(ubound-x)^2
-  }
-  return(dx)
-}
-
-rangepowerTransformDeriv <- function(x, 
-                                     lbound = NULL, 
-                                     ubound = NULL,
-                                     lambda = 1, 
-                                     epsbound = NULL,
-                                     tol = 1e-3)
-{
-  x <- as.vector(x)
-  if(is.null(lbound)) lbound <- -Inf
-  if(is.null(ubound)) ubound <- +Inf
-  if(is.null(epsbound))      
-    { stop("eps bound missing!") }
-  #
-  if(is.finite(lbound) && !is.finite(ubound))
-    { dx <- rangepowerTransformDeriv_lb(x, lambda = lambda, 
-                                      lbound = lbound,
-                                      eps = epsbound) }
-  else
-    { dx <- rangepowerTransformDeriv_lub(x, lambda = lambda, 
-                                       lbound = lbound,
-                                       ubound = ubound,
-                                       eps = epsbound,
-                                       tol = tol) }
-  return(dx)
-}

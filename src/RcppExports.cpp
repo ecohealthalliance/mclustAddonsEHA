@@ -67,6 +67,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rangepowerTransformDeriv_unb
+Rcpp::NumericVector rangepowerTransformDeriv_unb(NumericVector x, double lambda);
+RcppExport SEXP _mclustAddons_rangepowerTransformDeriv_unb(SEXP xSEXP, SEXP lambdaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    rcpp_result_gen = Rcpp::wrap(rangepowerTransformDeriv_unb(x, lambda));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rowMax_sugar
 NumericVector rowMax_sugar(NumericMatrix X);
 RcppExport SEXP _mclustAddons_rowMax_sugar(SEXP XSEXP) {

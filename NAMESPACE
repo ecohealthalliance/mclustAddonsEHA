@@ -14,7 +14,9 @@ export("densityMclustBounded",
        "summary.densityMclustBounded",
        "print.summary.densityMclustBounded",
        "plot.densityMclustBounded",
-       "predict.densityMclustBounded")
+       "predict.densityMclustBounded",
+       "cdfDensityBounded", "quantileDensityBounded", 
+       "densityMclustBounded.diagnostic")
 S3method("print", "densityMclustBounded")
 S3method("summary", "densityMclustBounded")
 S3method("print", "summary.densityMclustBounded")

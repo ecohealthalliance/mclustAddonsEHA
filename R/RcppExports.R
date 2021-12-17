@@ -17,6 +17,10 @@ rangepowerTransformDeriv_lub <- function(x, lambda = 1, lbound = NA_real_, uboun
     .Call(`_mclustAddons_rangepowerTransformDeriv_lub`, x, lambda, lbound, ubound, eps, tol)
 }
 
+rangepowerTransformDeriv_unb <- function(x, lambda = 1) {
+    .Call(`_mclustAddons_rangepowerTransformDeriv_unb`, x, lambda)
+}
+
 rowMax_sugar <- function(X) {
     .Call(`_mclustAddons_rowMax_sugar`, X)
 }

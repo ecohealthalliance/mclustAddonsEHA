@@ -1,6 +1,6 @@
 Package: mclustAddons
-Version: 0.5
-Date: 2021-09-28
+Version: 0.6
+Date: 2021-12-17
 Title: Addons for the 'mclust' Package
 Description: Extend the functionality of the 'mclust' package for 
   Gaussian finite mixture modelling by including: 
@@ -24,7 +24,7 @@ ByteCompile: true
 NeedsCompilation: yes
 LazyData: yes
 Encoding: UTF-8
-Packaged: 2021-09-28 17:26:39 UTC; luca
+Packaged: 2021-12-17 13:44:12 UTC; luca
 Author: Luca Scrucca [aut, cre]
 Maintainer: Luca Scrucca <luca.scrucca@unipg.it>
-Date/Publication: 2021-09-29 08:10:02 UTC
+Date/Publication: 2021-12-17 14:10:02 UTC

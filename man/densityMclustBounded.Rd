@@ -20,7 +20,7 @@ densityMclustBounded(data,
                      seed = NULL,
                      \dots)
 
-\method{print}{densityMclustBounded}(x, digits = getOption("digits")-3, \dots)
+\method{print}{densityMclustBounded}(x, digits = getOption("digits"), \dots)
 
 \method{summary}{densityMclustBounded}(object, parameters = FALSE, classification = FALSE, \dots)
 }

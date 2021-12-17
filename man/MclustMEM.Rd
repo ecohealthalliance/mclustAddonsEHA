@@ -13,7 +13,7 @@ Modal-clustering estimation by applying the Modal EM algorithm to Gaussian mixtu
 \usage{
 MclustMEM(mclustObject, data = NULL, \dots)
 
-\method{print}{MclustMEM}(x, digits = getOption("digits")-3, \dots)
+\method{print}{MclustMEM}(x, digits = getOption("digits"), \dots)
 
 \method{summary}{MclustMEM}(object, \dots)
 }
