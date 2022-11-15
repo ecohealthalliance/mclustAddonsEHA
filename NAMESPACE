@@ -1,6 +1,7 @@
 useDynLib(mclustAddons, .registration = TRUE)
 
 # importFrom(Rcpp, evalCpp)
+importFrom("Rcpp", sourceCpp)
 # exportPattern("^[[:alpha:]]+")
 
 # Import all packages listed as Imports or Depends
@@ -34,3 +35,19 @@ S3method("summary", "MclustMEM")
 S3method("print", "summary.MclustMEM")
 S3method("plot", "MclustMEM")
 
+export("EntropyGMM",
+       "EntropyGMM.densityMclust",
+       "EntropyGMM.densityMclustBounded",
+       "EntropyGMM.Mclust",
+       "EntropyGMM.matrix",
+       "EntropyGMM.data.frame",
+       "EntropyGauss",
+       "nats2bits",
+       "bits2nats")
+S3method("EntropyGMM", "densityMclust")
+S3method("EntropyGMM", "densityMclustBounded")
+S3method("EntropyGMM", "Mclust")
+S3method("EntropyGMM", "matrix")
+S3method("EntropyGMM", "data.frame")
+
+export("logsumexp", "softmax")

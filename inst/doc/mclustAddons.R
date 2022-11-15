@@ -89,6 +89,40 @@ summary(MEM)
 plot(MEM)
 plot(MEM, addDensity = FALSE)
 
+## ---- out.width="50%"---------------------------------------------------------
+EntropyGauss(1)       # population entropy
+x = rnorm(1000)       # generate sample
+EntropyGauss(var(x))  # sample entropy assuming Gaussian distribution
+mod = densityMclust(x, plot = FALSE)
+EntropyGMM(mod)       # GMM-based entropy estimate
+plot(mod, what = "density", data = x, breaks = 31); rug(x)
+
+## ---- out.width="50%"---------------------------------------------------------
+cl = rbinom(1000, size = 1, prob = 0.5)
+x = ifelse(cl == 1, rnorm(1000, 2, 1), rnorm(1000, -2, 1))   # generate sample
+mod = densityMclust(x, plot = FALSE)
+EntropyGMM(mod)       # GMM-based entropy estimate
+plot(mod, what = "density", data = x, breaks = 31); rug(x)
+
+## -----------------------------------------------------------------------------
+x = matrix(rchisq(1000*10, df = 5), nrow = 1000, ncol = 10)
+mod1 = densityMclust(x, plot = FALSE)
+EntropyGMM(mod1)      # GMM-based entropy estimate, not too bad but...
+mod2 = densityMclustBounded(x, lbound = rep(0,10))
+EntropyGMM(mod2)      # much more accurate
+
+## -----------------------------------------------------------------------------
+data(faithful)
+mod = densityMclust(faithful, plot = FALSE)
+EntropyGMM(mod)       # GMM-based entropy estimate
+# or provide the data and fit GMM implicitly
+EntropyGMM(faithful)
+
+## -----------------------------------------------------------------------------
+data(iris)
+mod = densityMclust(iris[,1:4], plot = FALSE)
+EntropyGMM(mod)       # GMM-based entropy estimate
+
 ## -----------------------------------------------------------------------------
 sessionInfo()
 

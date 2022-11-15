@@ -134,3 +134,27 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// logsumexp_Rcpp
+NumericVector logsumexp_Rcpp(NumericMatrix x, NumericVector a);
+RcppExport SEXP _mclustAddons_logsumexp_Rcpp(SEXP xSEXP, SEXP aSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type x(xSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type a(aSEXP);
+    rcpp_result_gen = Rcpp::wrap(logsumexp_Rcpp(x, a));
+    return rcpp_result_gen;
+END_RCPP
+}
+// softmax_Rcpp
+NumericMatrix softmax_Rcpp(NumericMatrix x, NumericVector a);
+RcppExport SEXP _mclustAddons_softmax_Rcpp(SEXP xSEXP, SEXP aSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type x(xSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type a(aSEXP);
+    rcpp_result_gen = Rcpp::wrap(softmax_Rcpp(x, a));
+    return rcpp_result_gen;
+END_RCPP
+}

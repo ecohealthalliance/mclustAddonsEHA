@@ -1,3 +1,8 @@
+# mclustAddons 0.7 (2022-11)
+
+- Add code for computing entropy via Gaussian mixtures. See `help(EntropyGMM)`.
+- Add efficient Rcpp-based functions to compute log-sum-exp and softmax.
+
 # mclustAddons 0.6 (2021-12)
 
 - Bug fixes.
@@ -9,7 +14,7 @@
 
 # mclustAddons 0.4 (2020-07 NOT ON CRAN)
 
-- Add logarithm arg to predict.densityMclustBounded() function.
+- Add logarithm arg to `predict.densityMclustBounded()` function.
 
 # mclustAddons 0.3 (2020-05 NOT ON CRAN)
 

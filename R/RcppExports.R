@@ -41,3 +41,11 @@ colSum <- function(X) {
     .Call(`_mclustAddons_colSum`, X)
 }
 
+logsumexp_Rcpp <- function(x, a) {
+    .Call(`_mclustAddons_logsumexp_Rcpp`, x, a)
+}
+
+softmax_Rcpp <- function(x, a) {
+    .Call(`_mclustAddons_softmax_Rcpp`, x, a)
+}
+

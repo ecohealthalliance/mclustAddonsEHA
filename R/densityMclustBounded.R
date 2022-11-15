@@ -805,10 +805,13 @@ tdens <- function(data, modelName, G,
                 parameters = parameters, 
                 warn = warn)
   cden <- sweep(cden, 1, FUN = "+", STATS = logJ)
+  
   if(what == "cdens")
-    { # return mixture components density
-      if(!logarithm) cden <- exp(cden)
-      return(cden) }
+  { 
+    # return mixture components density
+    if(!logarithm) cden <- exp(cden)
+    return(cden) 
+  }
   
   pro <- parameters$pro
   if(is.null(pro))
@@ -824,16 +827,20 @@ tdens <- function(data, modelName, G,
   }
   
   if(what == "z")
-    { # return probability of belong to mixture components
-      z <- cden
-      z <- sweep(z, MARGIN = 1, FUN = "-", STATS = apply(z, 1, mclust:::logsumexp))
-      if(!logarithm) z <- exp(z)
-      return(z) }
+  { 
+    # return probability of belong to mixture components
+    # z <- cden
+    # z <- sweep(z, MARGIN = 1, FUN = "-", STATS = apply(z, 1, mclust:::logsumexp))
+    # if(!logarithm) z <- exp(z)
+    z <- softmax(cden)
+    if(logarithm) z <- log(z)
+    return(z) 
+  }
   
-  # logsumexp (TODO: can be improved??)
-  maxlog <- rowMax(cden)
-  cden <- sweep(cden, 1, FUN = "-", STATS = maxlog)
-  den <- log(rowSum(exp(cden))) + maxlog
+  # maxlog <- rowMax(cden)
+  # cden <- sweep(cden, 1, FUN = "-", STATS = maxlog)
+  # den <- log(rowSum(exp(cden))) + maxlog
+  den <- logsumexp(cden)
   if(noise) 
     den <- den + parameters$pro[G+1]*parameters$Vinv
   if(!logarithm) den <- exp(den)
@@ -1435,6 +1442,7 @@ rangepowerTransformDeriv <- function(x,
 
   return(dx)
 }
+
 ## R versions of functions implemented in C++ ----
 
 ##  Range-Transformation 

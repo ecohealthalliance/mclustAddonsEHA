@@ -98,10 +98,25 @@ persp3D <- function(x, y, z, theta = 30, phi = 20, d = 5, expand = 2/3,
   invisible(out)
 }
 
-logsumexp <- function(x)
+# logsumexp <- function(x)
+# { 
+# # Numerically efficient implementation of log(sum(exp(x)))
+#   max <- max(x)
+#   max + log(sum(exp(x-max)))
+# }
+
+logsumexp <- function(x, a = NULL)
 { 
-# Numerically efficient implementation of log(sum(exp(x)))
-  max <- max(x)
-  max + log(sum(exp(x-max)))
+  x <- as.matrix(x)
+  a <- if(is.null(a)) rep(double(0), ncol(x)) else as.vector(a)
+  logsumexp_Rcpp(x,a)
 }
+
+softmax <- function(x, a = NULL)
+{ 
+  x <- as.matrix(x)
+  a <- if(is.null(a)) rep(double(0), ncol(x)) else as.vector(a)
+  softmax_Rcpp(x,a)
+}
+
 
