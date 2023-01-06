@@ -1,3 +1,7 @@
+# mclustAddons 0.7.1 (2022-11)
+
+- Small bug fix in help page.
+
 # mclustAddons 0.7 (2022-11)
 
 - Add code for computing entropy via Gaussian mixtures. See `help(EntropyGMM)`.

@@ -36,14 +36,15 @@ set.seed(1) # for exact reproducibility
 **mclustAddons** is a contributed R package that extends the functionality available in the **mclust** package (Scrucca et al. 2016).  
 In particular, the following methods are included:
 
-- density estimation for data with bounded support;
+- density estimation for data with bounded support (Scrucca, 2019);
 
-- modal clustering using modal EM algorithm for Gaussian mixtures.
+- modal clustering using modal EM algorithm for Gaussian mixtures (Scrucca, 2021);
+
+- entropy estimation via Gaussian mixture modeling (Robin & Scrucca, 2023).
 
 This document gives a quick tour of **mclustAddons** (version `r packageVersion("mclustAddons")`). It was written in [R Markdown](https://rmarkdown.rstudio.com), using the [knitr](https://cran.r-project.org/package=knitr) package for production. 
 
-References on the methodologies implemented are provided by `citation("mclustAddons")`.
-See also at the end of this document.
+References on the methodologies implemented are provided at the end of this document.
 
 ```{r}
 library(mclustAddons)
@@ -178,6 +179,8 @@ EntropyGMM(mod)       # GMM-based entropy estimate
 plot(mod, what = "density", data = x, breaks = 31); rug(x)
 ```
 
+<br>
+
 **Multivariate Chi-squared**\
 Consider a 10-dimensional independent $\chi^2$ distribution, whose entropy is 24.23095 in the population.
 ```{r}
@@ -206,9 +209,13 @@ mod = densityMclust(iris[,1:4], plot = FALSE)
 EntropyGMM(mod)       # GMM-based entropy estimate
 ```
 
+<br>
 
 # References
 
+Scrucca L., Fop M., Murphy T. B. and Raftery A. E. (2016) mclust 5: clustering, classification and density estimation using Gaussian finite mixture models. *The R Journal* 8/1, pp. 289-317.
+https://doi.org/10.32614/RJ-2016-021
+  
 Scrucca L. (2019) A transformation-based approach to Gaussian mixture density estimation for bounded data, *Biometrical Journal*, 61:4, 873–888. https://doi.org/10.1002/bimj.201800174
 
 Scrucca L. (2021) A fast and efficient Modal EM algorithm for Gaussian mixtures. *Statistical Analysis and Data Mining*, 14:4, 305–314. https://doi.org/10.1002/sam.11527

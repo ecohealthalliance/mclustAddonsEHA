@@ -12,12 +12,12 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // rangeTransform
-Rcpp::NumericVector rangeTransform(NumericVector x, double lbound, double ubound);
+NumericVector rangeTransform(NumericVector& x, double lbound, double ubound);
 RcppExport SEXP _mclustAddons_rangeTransform(SEXP xSEXP, SEXP lboundSEXP, SEXP uboundSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< NumericVector& >::type x(xSEXP);
     Rcpp::traits::input_parameter< double >::type lbound(lboundSEXP);
     Rcpp::traits::input_parameter< double >::type ubound(uboundSEXP);
     rcpp_result_gen = Rcpp::wrap(rangeTransform(x, lbound, ubound));
@@ -25,12 +25,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // powerTransform
-Rcpp::NumericVector powerTransform(NumericVector x, double lambda, double eps);
+NumericVector powerTransform(NumericVector& x, double lambda, double eps);
 RcppExport SEXP _mclustAddons_powerTransform(SEXP xSEXP, SEXP lambdaSEXP, SEXP epsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< NumericVector& >::type x(xSEXP);
     Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
     Rcpp::traits::input_parameter< double >::type eps(epsSEXP);
     rcpp_result_gen = Rcpp::wrap(powerTransform(x, lambda, eps));
@@ -38,12 +38,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // rangepowerTransformDeriv_lb
-Rcpp::NumericVector rangepowerTransformDeriv_lb(NumericVector x, double lambda, double lbound, double eps);
+NumericVector rangepowerTransformDeriv_lb(NumericVector& x, double lambda, double lbound, double eps);
 RcppExport SEXP _mclustAddons_rangepowerTransformDeriv_lb(SEXP xSEXP, SEXP lambdaSEXP, SEXP lboundSEXP, SEXP epsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< NumericVector& >::type x(xSEXP);
     Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
     Rcpp::traits::input_parameter< double >::type lbound(lboundSEXP);
     Rcpp::traits::input_parameter< double >::type eps(epsSEXP);
@@ -52,12 +52,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // rangepowerTransformDeriv_lub
-Rcpp::NumericVector rangepowerTransformDeriv_lub(NumericVector x, double lambda, double lbound, double ubound, double eps, double tol);
+NumericVector rangepowerTransformDeriv_lub(NumericVector& x, double lambda, double lbound, double ubound, double eps, double tol);
 RcppExport SEXP _mclustAddons_rangepowerTransformDeriv_lub(SEXP xSEXP, SEXP lambdaSEXP, SEXP lboundSEXP, SEXP uboundSEXP, SEXP epsSEXP, SEXP tolSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< NumericVector& >::type x(xSEXP);
     Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
     Rcpp::traits::input_parameter< double >::type lbound(lboundSEXP);
     Rcpp::traits::input_parameter< double >::type ubound(uboundSEXP);
@@ -68,93 +68,82 @@ BEGIN_RCPP
 END_RCPP
 }
 // rangepowerTransformDeriv_unb
-Rcpp::NumericVector rangepowerTransformDeriv_unb(NumericVector x, double lambda);
+NumericVector rangepowerTransformDeriv_unb(NumericVector& x, double lambda);
 RcppExport SEXP _mclustAddons_rangepowerTransformDeriv_unb(SEXP xSEXP, SEXP lambdaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< NumericVector& >::type x(xSEXP);
     Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
     rcpp_result_gen = Rcpp::wrap(rangepowerTransformDeriv_unb(x, lambda));
     return rcpp_result_gen;
 END_RCPP
 }
-// rowMax_sugar
-NumericVector rowMax_sugar(NumericMatrix X);
-RcppExport SEXP _mclustAddons_rowMax_sugar(SEXP XSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type X(XSEXP);
-    rcpp_result_gen = Rcpp::wrap(rowMax_sugar(X));
-    return rcpp_result_gen;
-END_RCPP
-}
 // rowMax
-NumericVector rowMax(arma::mat X);
+arma::colvec rowMax(arma::mat& X);
 RcppExport SEXP _mclustAddons_rowMax(SEXP XSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
     rcpp_result_gen = Rcpp::wrap(rowMax(X));
     return rcpp_result_gen;
 END_RCPP
 }
 // rowSum
-NumericVector rowSum(arma::mat X);
+arma::colvec rowSum(arma::mat& X);
 RcppExport SEXP _mclustAddons_rowSum(SEXP XSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
     rcpp_result_gen = Rcpp::wrap(rowSum(X));
     return rcpp_result_gen;
 END_RCPP
 }
 // colMax
-NumericVector colMax(arma::mat X);
+arma::rowvec colMax(arma::mat& X);
 RcppExport SEXP _mclustAddons_colMax(SEXP XSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
     rcpp_result_gen = Rcpp::wrap(colMax(X));
     return rcpp_result_gen;
 END_RCPP
 }
 // colSum
-NumericVector colSum(arma::mat X);
+arma::rowvec colSum(arma::mat& X);
 RcppExport SEXP _mclustAddons_colSum(SEXP XSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
     rcpp_result_gen = Rcpp::wrap(colSum(X));
     return rcpp_result_gen;
 END_RCPP
 }
 // logsumexp_Rcpp
-NumericVector logsumexp_Rcpp(NumericMatrix x, NumericVector a);
-RcppExport SEXP _mclustAddons_logsumexp_Rcpp(SEXP xSEXP, SEXP aSEXP) {
+NumericVector logsumexp_Rcpp(arma::mat& x, arma::rowvec& v);
+RcppExport SEXP _mclustAddons_logsumexp_Rcpp(SEXP xSEXP, SEXP vSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type x(xSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type a(aSEXP);
-    rcpp_result_gen = Rcpp::wrap(logsumexp_Rcpp(x, a));
+    Rcpp::traits::input_parameter< arma::mat& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::rowvec& >::type v(vSEXP);
+    rcpp_result_gen = Rcpp::wrap(logsumexp_Rcpp(x, v));
     return rcpp_result_gen;
 END_RCPP
 }
 // softmax_Rcpp
-NumericMatrix softmax_Rcpp(NumericMatrix x, NumericVector a);
-RcppExport SEXP _mclustAddons_softmax_Rcpp(SEXP xSEXP, SEXP aSEXP) {
+arma::mat softmax_Rcpp(arma::mat& x, arma::rowvec& v);
+RcppExport SEXP _mclustAddons_softmax_Rcpp(SEXP xSEXP, SEXP vSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type x(xSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type a(aSEXP);
-    rcpp_result_gen = Rcpp::wrap(softmax_Rcpp(x, a));
+    Rcpp::traits::input_parameter< arma::mat& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::rowvec& >::type v(vSEXP);
+    rcpp_result_gen = Rcpp::wrap(softmax_Rcpp(x, v));
     return rcpp_result_gen;
 END_RCPP
 }

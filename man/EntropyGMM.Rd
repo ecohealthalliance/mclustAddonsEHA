@@ -48,7 +48,7 @@ If a \code{'matrix'} or \code{'data.frame'} is provided as input, a GMM using th
 
 \code{EntropyGauss()} returns the entropy for a multivariate Gaussian distribution with covariance matrix \code{sigma}.
 
-\code{nats2bits()} and \code{bits2nats()} convert values in nats to bits, and viceversa. Information-theoretic quantities have different units depending on the base of the logarithm used: nats are expressed in base-2 logarithms, whereas bits in natural logarithms.
+\code{nats2bits()} and \code{bits2nats()} convert input values in nats to bits, and viceversa. Information-theoretic quantities have different units depending on the base of the logarithm used: nats are expressed in base-2 logarithms, whereas bits in natural logarithms.
 }
 
 \seealso{

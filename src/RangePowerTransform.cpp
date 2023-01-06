@@ -1,63 +1,65 @@
 #include "RcppArmadillo.h"
 // [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::plugins(cpp11)]]
 using namespace Rcpp;
-using namespace arma;
 
 //
 // Range-Transformation
 // 
+
 // [[Rcpp::export]]
-Rcpp::NumericVector 
-  rangeTransform(NumericVector x, 
-                 double lbound = NA_REAL,
-                 double ubound = NA_REAL)
+NumericVector rangeTransform(NumericVector& x, 
+                             double lbound = NA_REAL,
+                             double ubound = NA_REAL)
 {
   NumericVector z = clone(x);
   
-  if(is_finite(lbound) && is_finite(ubound))
+  if(std::isfinite(lbound) && std::isfinite(ubound))
   {
     z = (x - lbound)/(ubound - x);
   }
-  else if(is_finite(lbound))
+  else if(std::isfinite(lbound))
   {
     z = (x - lbound);
   }
-  else if(is_finite(ubound)) 
+  else if(std::isfinite(ubound)) 
   { 
-    stop("upper bound only range transformation not available!");
+    stop("range transformation using only upper bound not available!");
   }
-
+  
   return z;
 }
 
-/*** R
-# set.seed(1)
-# x = rchisq(5,3)
-# rangeTransform_R(x)
-# rangeTransform(x)
-# rangeTransform_R(x, lbound = -1)
-# rangeTransform(x, lbound = -1)
-# rangeTransform_R(x, lbound = 0, ubound = 10)
-# rangeTransform(x, lbound = 0, ubound = 10)
-# 
-# set.seed(123)
-# x = rchisq(1e8,3)
-# system.time(rangeTransform_R(x, lbound = 0, ubound = 10))
-# system.time(rangeTransform(x, lbound = 0, ubound = 10))
+/***
+set.seed(1)
+x = rchisq(5,3)
+mclustAddons:::rangeTransform_R(x)
+rangeTransform(x)
+
+mclustAddons:::rangeTransform_R(x, lbound = -1)
+rangeTransform(x, lbound = -1)
+
+mclustAddons:::rangeTransform_R(x, lbound = 0, ubound = 10)
+rangeTransform(x, lbound = 0, ubound = 10)
+
+mclustAddons:::rangeTransform_R(x, lbound = 0, ubound = Inf)
+rangeTransform(x, lbound = 0, ubound = Inf)
+
+ set.seed(123)
+x = rchisq(1e5,3)
+microbenchmark::microbenchmark(
+  "R" = mclustAddons:::rangeTransform_R(x, lbound = 0, ubound = 10),
+  "Rcpp" = rangeTransform(x, lbound = 0, ubound = 10))
 */
 
 //
 // Power Box-Cox Transformation
 // 
 // [[Rcpp::export]]
-Rcpp::NumericVector 
-  powerTransform(NumericVector x, 
-                 double lambda = 1,
-                 double eps = 1e-3)
+NumericVector powerTransform(NumericVector& x, 
+                             double lambda = 1,
+                             double eps = 1e-3)
 {
-  // NumericVector x = clone(data);
-  // LogicalVector isna = is_na(x);
-  // x = x[!isna];
   NumericVector z = clone(x);
   
   if(is_true(any(z < 0)))
@@ -71,19 +73,21 @@ Rcpp::NumericVector
   return(z);
 }
 
-/*** R
-# x = rchisq(10, 3)
-# powerTransform_R(x, lambda = 1/3)
-# powerTransform(x, lambda = 1/3)
-# powerTransform_R(x, lambda = 0)
-# powerTransform(x, lambda = 0)
-# 
-# set.seed(123)
-# x = rchisq(1e8,3)
-# system.time(powerTransform_R(x, lambda = 1/3))
-# system.time(powerTransform(x, lambda = 1/3))
-# system.time(powerTransform_R(x, lambda = 0))
-# system.time(powerTransform(x, lambda = 0))
+/***
+x = rchisq(10, 3)
+mclustAddons:::powerTransform_R(x, lambda = 1/3)
+powerTransform(x, lambda = 1/3)
+mclustAddons:::powerTransform_R(x, lambda = 0)
+powerTransform(x, lambda = 0)
+
+set.seed(123)
+x = rchisq(1e5,3)
+microbenchmark::microbenchmark(
+  "R" = mclustAddons:::powerTransform_R(x, lambda = 1/3),
+  "Rcpp" = powerTransform(x, lambda = 1/3))
+microbenchmark::microbenchmark(
+  "R" = mclustAddons:::powerTransform_R(x, lambda = 0),
+  "Rcpp" = powerTransform(x, lambda = 0))
 */
 
 //
@@ -91,18 +95,16 @@ Rcpp::NumericVector
 // 
 
 // [[Rcpp::export]]
-Rcpp::NumericVector 
-  rangepowerTransformDeriv_lb(NumericVector x,
-                              double lambda = 1,
-                              double lbound = NA_REAL,
-                              double eps    = NA_REAL)
+NumericVector rangepowerTransformDeriv_lb(NumericVector& x,
+                                          double lambda = 1,
+                                          double lbound = NA_REAL,
+                                          double eps    = NA_REAL)
 {
   if(ISNAN(lbound))
     { stop("lbound missing!"); }
   if(ISNAN(eps)) // (!is_finite(eps))
     { stop("ubound missing!"); }
-  // Rcout << "eps = " << eps << std::endl;
-  
+
   NumericVector tx = rangeTransform(x, lbound); // = (x-lbound)
   NumericVector dx = pow(tx, lambda - 1);
   if(lambda < 1)
@@ -115,28 +117,27 @@ Rcpp::NumericVector
   return(dx);
 }
 
-/*** R
-# set.seed(1)
-# x = rchisq(200, 3)
-# dx_R = rangepowerTransformDeriv_R(x, lambda = 0.3, lbound = 0, eps = 1)
-# dx = rangepowerTransformDeriv_lb(x, lambda = 0.3, lbound = 0, eps = 1)
-# plot(x, dx_R)
-# points(x, dx, pch = 20, col = 2)
-# 
-# system.time(123)
-# x = rchisq(1e7, 3)
-# system.time(rangepowerTransformDeriv_R(x, lambda = 0.3, lbound = 0, eps = 1))
-# system.time(rangepowerTransformDeriv_lb(x, lambda = 0.3, lbound = 0, eps = 1))
+/***
+set.seed(1)
+x = rchisq(200, 3)
+dx_R = rangepowerTransformDeriv_R(x, lambda = 0.3, lbound = 0, eps = 1)
+dx = rangepowerTransformDeriv_lb(x, lambda = 0.3, lbound = 0, eps = 1)
+plot(x, dx_R)
+points(x, dx, pch = 20, col = 2)
+
+system.time(123)
+x = rchisq(1e7, 3)
+system.time(rangepowerTransformDeriv_R(x, lambda = 0.3, lbound = 0, eps = 1))
+system.time(rangepowerTransformDeriv_lb(x, lambda = 0.3, lbound = 0, eps = 1))
 */ 
 
 // [[Rcpp::export]]
-Rcpp::NumericVector 
-  rangepowerTransformDeriv_lub(NumericVector x,
-                               double lambda = 1,
-                               double lbound = NA_REAL,
-                               double ubound = NA_REAL,
-                               double eps    = NA_REAL,
-                               double tol    = 1e-3)
+NumericVector rangepowerTransformDeriv_lub(NumericVector& x,
+                                           double lambda = 1,
+                                           double lbound = NA_REAL,
+                                           double ubound = NA_REAL,
+                                           double eps    = NA_REAL,
+                                           double tol    = 1e-3)
 {
   if(ISNAN(lbound))
     { stop("lbound missing!"); }
@@ -183,40 +184,40 @@ Rcpp::NumericVector
           (ubound - lbound)/pow(eps, 2) - b*(ubound - eps);
       dx = ifelse(x > (ubound-eps), pmax(machineEps, a+b*x), dx);  
     }
+  
   return(dx);
 }
 
-/*** R
-# set.seed(1)
-# x = c(0.001, rbeta(5, 1/2, 1/2), 0.999)
-# rangepowerTransformDeriv_R(x, lambda = 1, lbound = 0, ubound = 1)
-# rangepowerTransformDeriv_lub(x, lambda = 1, lbound = 0, ubound = 1)
-# rangepowerTransformDeriv_R(x, lambda = 0, lbound = 0, ubound = 1)
-# rangepowerTransformDeriv_lub(x, lambda = 0, lbound = 0, ubound = 1)
-# rangepowerTransformDeriv_R(x, lambda = -1, lbound = 0, ubound = 1)
-# rangepowerTransformDeriv_lub(x, lambda = -1, lbound = 0, ubound = 1)
-#   
-# set.seed(1)
-# x = c(0.01, rbeta(200, 3, 1), 0.999)
-# hist(x)
-# dx_R = rangepowerTransformDeriv_R(x, lambda = 0, lbound = 0, eps = 1)
-# dx = rangepowerTransformDeriv_lb(x, lambda = 0, lbound = 0, eps = 1)
-# plot(x, dx_R)
-# points(x, dx, pch = 20, col = 2)
-# 
-# x = rbeta(1e7, 1/2, 1/2)
-# system.time(rangepowerTransformDeriv_R(x,   lambda = 0.3, lbound = 0, ubound = 1))
-# system.time(rangepowerTransformDeriv_lub(x, lambda = 0.3, lbound = 0, ubound = 1))
-# system.time(rangepowerTransformDeriv_R(x,   lambda = 0, lbound = 0, ubound = 1))
-# system.time(rangepowerTransformDeriv_lub(x, lambda = 0, lbound = 0, ubound = 1))
-# system.time(rangepowerTransformDeriv_R(x,   lambda = -1, lbound = 0, ubound = 1))
-# system.time(rangepowerTransformDeriv_lub(x, lambda = -1, lbound = 0, ubound = 1))
+/***
+set.seed(1)
+x = c(0.001, rbeta(5, 1/2, 1/2), 0.999)
+rangepowerTransformDeriv_R(x, lambda = 1, lbound = 0, ubound = 1)
+rangepowerTransformDeriv_lub(x, lambda = 1, lbound = 0, ubound = 1)
+rangepowerTransformDeriv_R(x, lambda = 0, lbound = 0, ubound = 1)
+rangepowerTransformDeriv_lub(x, lambda = 0, lbound = 0, ubound = 1)
+rangepowerTransformDeriv_R(x, lambda = -1, lbound = 0, ubound = 1)
+rangepowerTransformDeriv_lub(x, lambda = -1, lbound = 0, ubound = 1)
+
+set.seed(1)
+x = c(0.01, rbeta(200, 3, 1), 0.999)
+hist(x)
+dx_R = rangepowerTransformDeriv_R(x, lambda = 0, lbound = 0, eps = 1)
+dx = rangepowerTransformDeriv_lb(x, lambda = 0, lbound = 0, eps = 1)
+plot(x, dx_R)
+points(x, dx, pch = 20, col = 2)
+
+x = rbeta(1e7, 1/2, 1/2)
+system.time(rangepowerTransformDeriv_R(x,   lambda = 0.3, lbound = 0, ubound = 1))
+system.time(rangepowerTransformDeriv_lub(x, lambda = 0.3, lbound = 0, ubound = 1))
+system.time(rangepowerTransformDeriv_R(x,   lambda = 0, lbound = 0, ubound = 1))
+system.time(rangepowerTransformDeriv_lub(x, lambda = 0, lbound = 0, ubound = 1))
+system.time(rangepowerTransformDeriv_R(x,   lambda = -1, lbound = 0, ubound = 1))
+system.time(rangepowerTransformDeriv_lub(x, lambda = -1, lbound = 0, ubound = 1))
 */ 
 
 // [[Rcpp::export]]
-Rcpp::NumericVector 
-  rangepowerTransformDeriv_unb(NumericVector x,
-                               double lambda = 1)
+NumericVector rangepowerTransformDeriv_unb(NumericVector& x,
+                                           double lambda = 1)
 {
   NumericVector tx = x;
   NumericVector dx = pow(tx, lambda - 1);
@@ -224,64 +225,50 @@ Rcpp::NumericVector
 }
 
 //
-// Maximum by rows for numerical matrices
-// (much faster than using apply(..., 1, max))
+// Maximum/Sum by rows/columns for numerical matrices
+// (much faster than using apply())
 //
 
 // [[Rcpp::export]]
-NumericVector rowMax_sugar(NumericMatrix X)
+arma::colvec rowMax(arma::mat& X)
 {
-  int nrows = X.nrow();
-  NumericVector maxs(nrows);
-  for(int i = 0; i < nrows; i++)
-     { maxs[i] = Rcpp::max( X(i,_) ); }
-  return(maxs);
+  return arma::max(X, 1);
 }
 
 // [[Rcpp::export]]
-NumericVector rowMax(arma::mat X)
+arma::colvec rowSum(arma::mat& X)
 {
-  arma::colvec rmax = arma::max(X, 1);
-  return NumericVector(rmax.begin(), rmax.end());
+  return arma::sum(X, 1);
 }
 
 // [[Rcpp::export]]
-NumericVector rowSum(arma::mat X)
+arma::rowvec colMax(arma::mat& X)
 {
-  arma::colvec rsum = arma::sum(X, 1);
-  return NumericVector(rsum.begin(), rsum.end());
+  return arma::max(X, 0);
 }
 
 // [[Rcpp::export]]
-NumericVector colMax(arma::mat X)
+arma::rowvec colSum(arma::mat& X)
 {
-  arma::rowvec cmax = arma::max(X, 0);
-  return NumericVector(cmax.begin(), cmax.end());
+  return arma::sum(X, 0);
 }
 
-// [[Rcpp::export]]
-NumericVector colSum(arma::mat X)
-{
-  arma::rowvec csum = arma::sum(X, 0);
-  return NumericVector(csum.begin(), csum.end());
-}
+/***
+library(microbenchmark)
+X = matrix(rchisq(1e5,10),1e4,10)
 
-/*** R
-# library(microbenchmark)
-# X = matrix(rchisq(1e5,10),1e4,10)
-# 
-# all.equal(apply(X, 1, max), rowMax(X))
-# all.equal(apply(X, 1, max), rowMax_sugar(X))
-# microbenchmark(apply(X, 1, max), rowMax(X), rowMax_sugar(X))
-# 
-# all.equal(apply(X, 1, sum), rowSums(X))
-# all.equal(apply(X, 1, sum), rowSum(X))
-# microbenchmark(apply(X, 1, sum), rowSums(X), rowSum(X))
-# 
-# all.equal(apply(X, 2, max), colMax(X))
-# microbenchmark(apply(X, 2, max), colMax(X))
-#
-# all.equal(apply(X, 2, sum), colSums(X))
-# all.equal(apply(X, 2, sum), colSum(X))
-# microbenchmark(apply(X, 2, sum), colSums(X), colSum(X))
+all.equal(apply(X, 1, max), rowMax(X))
+microbenchmark(apply(X, 1, max), rowMax(X))
+
+all.equal(apply(X, 1, sum), base::rowSums(X))
+all.equal(apply(X, 1, sum), rowSum(X))
+microbenchmark(apply(X, 1, sum), base::rowSums(X), rowSum(X))
+
+X = t(X)
+all.equal(apply(X, 2, max), colMax(X))
+microbenchmark(apply(X, 2, max), colMax(X))
+
+all.equal(apply(X, 2, sum), base::colSums(X))
+all.equal(apply(X, 2, sum), colSum(X))
+microbenchmark(apply(X, 2, sum), base::colSums(X), colSum(X))
 */

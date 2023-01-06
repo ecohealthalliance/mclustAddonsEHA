@@ -21,10 +21,6 @@ rangepowerTransformDeriv_unb <- function(x, lambda = 1) {
     .Call(`_mclustAddons_rangepowerTransformDeriv_unb`, x, lambda)
 }
 
-rowMax_sugar <- function(X) {
-    .Call(`_mclustAddons_rowMax_sugar`, X)
-}
-
 rowMax <- function(X) {
     .Call(`_mclustAddons_rowMax`, X)
 }
@@ -41,11 +37,11 @@ colSum <- function(X) {
     .Call(`_mclustAddons_colSum`, X)
 }
 
-logsumexp_Rcpp <- function(x, a) {
-    .Call(`_mclustAddons_logsumexp_Rcpp`, x, a)
+logsumexp_Rcpp <- function(x, v) {
+    .Call(`_mclustAddons_logsumexp_Rcpp`, x, v)
 }
 
-softmax_Rcpp <- function(x, a) {
-    .Call(`_mclustAddons_softmax_Rcpp`, x, a)
+softmax_Rcpp <- function(x, v) {
+    .Call(`_mclustAddons_softmax_Rcpp`, x, v)
 }
 

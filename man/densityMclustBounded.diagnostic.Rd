@@ -43,7 +43,7 @@ densityMclustBounded.diagnostic(object, type = c("cdf", "qq"),
 The two diagnostic plots for density estimation in the one-dimensional case are discussed in Loader (1999, pp- 87-90).
 }
 
-% \value{}
+\value{No return value, called for side effects.}
 
 \references{
   Loader C. (1999), Local Regression and Likelihood. New York, Springer.

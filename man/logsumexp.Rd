@@ -11,35 +11,38 @@ Efficient implementation (via Rcpp) of log-sum-exp and softmax functions.
 }
 
 \usage{
-logsumexp(x, a = NULL)
-softmax(x, a = NULL)
+logsumexp(x, v = NULL)
+softmax(x, v = NULL)
 }
 
 \arguments{
   \item{x}{a matrix of dimension \eqn{(n \times k)}{(n x k)}.}
-  \item{a}{an optional vector of length \eqn{k}{k}. If not provided a vector of 
-           zeros is used.}
+  \item{v}{an optional vector of length \eqn{k}{k}. If not provided a vector 
+           of zeros is used.}
 }
 
 \details{Given the matrix \eqn{x}{x} \code{logsumexp()} calculates for each row 
 \eqn{x_{[i,]}}{x[i,]} the log-sum-exp function computed as
 
-\deqn{m_{[i]} + \log\sum(\exp(x_{[i,]} + a) - m_{[i]})}{m[i] + log(sum(exp(x[i,] + a) - m[i]))}
+\deqn{m_{[i]} + \log\sum(\exp(x_{[i,]} + v) - m_{[i]})}{m[i] + log(sum(exp(x[i,] + v) - m[i]))}
 
-where \eqn{m_{[i]} = \max(x_{[i,]} + a)}{m[i] = max(x[i,] + a) }.
+where \eqn{m_{[i]} = \max(x_{[i,]} + v)}{m[i] = max(x[i,] + v) }.
 
 \code{softmax()} calculates for each row \eqn{x_{[i,]}}{x[i,]} the softmax (aka 
 multinomial logistic) function 
 
-\deqn{\dfrac{\exp( x_{[i,c]} + a_{[c]} )}{\sum_{j=1}^k\exp( x_{[i,j]} + a_{[j]})}}{exp( x_[i,c] + a_[c]) / (sum_{j=1}^k exp( x_[i,j] + a_[j]) )}
+\deqn{\frac{\exp( x_{[i,c]} + v_{[c]} )}{\sum_{j=1}^k\exp( x_{[i,j]} + v_{[j]})}}{exp( x_[i,c] + v_[c]) / (sum_{j=1}^k exp( x_[i,j] + v_[j]) )}
 }
+
+\value{\code{logsumexp()} returns a vector of values of length equal to the number of rows of \eqn{x}{x}.
+\code{softmax()} returns a matrix of values of the same dimension as \eqn{x}{x}.}
 
 \author{Luca Scrucca}
 
 \examples{
 x = matrix(rnorm(15), 5, 3)
-a = log(c(0.5, 0.3, 0.2))
-logsumexp(x, a)
-(z = softmax(x, a))
+v = log(c(0.5, 0.3, 0.2))
+logsumexp(x, v)
+(z = softmax(x, v))
 rowSums(z)
 }

@@ -105,18 +105,21 @@ persp3D <- function(x, y, z, theta = 30, phi = 20, d = 5, expand = 2/3,
 #   max + log(sum(exp(x-max)))
 # }
 
-logsumexp <- function(x, a = NULL)
+logsumexp <- function(x, v = NULL)
 { 
   x <- as.matrix(x)
-  a <- if(is.null(a)) rep(double(0), ncol(x)) else as.vector(a)
-  logsumexp_Rcpp(x,a)
+  v <- if(is.null(v)) rep(as.double(0), length.out = ncol(x)) else as.vector(v)
+  if(length(v) != ncol(x))
+    stop("Non-conforming arguments in logsumexp")
+  # as.vector(logsumexp_Rcpp(x,v))
+  logsumexp_Rcpp(x,v)
 }
 
-softmax <- function(x, a = NULL)
+softmax <- function(x, v = NULL)
 { 
   x <- as.matrix(x)
-  a <- if(is.null(a)) rep(double(0), ncol(x)) else as.vector(a)
-  softmax_Rcpp(x,a)
+  v <- if(is.null(v)) rep(as.double(0), length.out = ncol(x)) else as.vector(v)
+  if(length(v) != ncol(x))
+    stop("Non-conforming arguments in logsumexp")
+  softmax_Rcpp(x,v)
 }
-
-
