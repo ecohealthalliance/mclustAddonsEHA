@@ -13,7 +13,7 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 
 // rangeTransform
 NumericVector rangeTransform(NumericVector& x, double lbound, double ubound);
-RcppExport SEXP _mclustAddons_rangeTransform(SEXP xSEXP, SEXP lboundSEXP, SEXP uboundSEXP) {
+RcppExport SEXP _mclustAddonsEHA_rangeTransform(SEXP xSEXP, SEXP lboundSEXP, SEXP uboundSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -26,7 +26,7 @@ END_RCPP
 }
 // powerTransform
 NumericVector powerTransform(NumericVector& x, double lambda, double eps);
-RcppExport SEXP _mclustAddons_powerTransform(SEXP xSEXP, SEXP lambdaSEXP, SEXP epsSEXP) {
+RcppExport SEXP _mclustAddonsEHA_powerTransform(SEXP xSEXP, SEXP lambdaSEXP, SEXP epsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -39,7 +39,7 @@ END_RCPP
 }
 // rangepowerTransformDeriv_lb
 NumericVector rangepowerTransformDeriv_lb(NumericVector& x, double lambda, double lbound, double eps);
-RcppExport SEXP _mclustAddons_rangepowerTransformDeriv_lb(SEXP xSEXP, SEXP lambdaSEXP, SEXP lboundSEXP, SEXP epsSEXP) {
+RcppExport SEXP _mclustAddonsEHA_rangepowerTransformDeriv_lb(SEXP xSEXP, SEXP lambdaSEXP, SEXP lboundSEXP, SEXP epsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -53,7 +53,7 @@ END_RCPP
 }
 // rangepowerTransformDeriv_lub
 NumericVector rangepowerTransformDeriv_lub(NumericVector& x, double lambda, double lbound, double ubound, double eps, double tol);
-RcppExport SEXP _mclustAddons_rangepowerTransformDeriv_lub(SEXP xSEXP, SEXP lambdaSEXP, SEXP lboundSEXP, SEXP uboundSEXP, SEXP epsSEXP, SEXP tolSEXP) {
+RcppExport SEXP _mclustAddonsEHA_rangepowerTransformDeriv_lub(SEXP xSEXP, SEXP lambdaSEXP, SEXP lboundSEXP, SEXP uboundSEXP, SEXP epsSEXP, SEXP tolSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -69,7 +69,7 @@ END_RCPP
 }
 // rangepowerTransformDeriv_unb
 NumericVector rangepowerTransformDeriv_unb(NumericVector& x, double lambda);
-RcppExport SEXP _mclustAddons_rangepowerTransformDeriv_unb(SEXP xSEXP, SEXP lambdaSEXP) {
+RcppExport SEXP _mclustAddonsEHA_rangepowerTransformDeriv_unb(SEXP xSEXP, SEXP lambdaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -81,7 +81,7 @@ END_RCPP
 }
 // rowMax
 arma::colvec rowMax(arma::mat& X);
-RcppExport SEXP _mclustAddons_rowMax(SEXP XSEXP) {
+RcppExport SEXP _mclustAddonsEHA_rowMax(SEXP XSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -92,7 +92,7 @@ END_RCPP
 }
 // rowSum
 arma::colvec rowSum(arma::mat& X);
-RcppExport SEXP _mclustAddons_rowSum(SEXP XSEXP) {
+RcppExport SEXP _mclustAddonsEHA_rowSum(SEXP XSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -103,7 +103,7 @@ END_RCPP
 }
 // colMax
 arma::rowvec colMax(arma::mat& X);
-RcppExport SEXP _mclustAddons_colMax(SEXP XSEXP) {
+RcppExport SEXP _mclustAddonsEHA_colMax(SEXP XSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -114,7 +114,7 @@ END_RCPP
 }
 // colSum
 arma::rowvec colSum(arma::mat& X);
-RcppExport SEXP _mclustAddons_colSum(SEXP XSEXP) {
+RcppExport SEXP _mclustAddonsEHA_colSum(SEXP XSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -125,7 +125,7 @@ END_RCPP
 }
 // logsumexp_Rcpp
 NumericVector logsumexp_Rcpp(arma::mat& x, arma::rowvec& v);
-RcppExport SEXP _mclustAddons_logsumexp_Rcpp(SEXP xSEXP, SEXP vSEXP) {
+RcppExport SEXP _mclustAddonsEHA_logsumexp_Rcpp(SEXP xSEXP, SEXP vSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -137,7 +137,7 @@ END_RCPP
 }
 // softmax_Rcpp
 arma::mat softmax_Rcpp(arma::mat& x, arma::rowvec& v);
-RcppExport SEXP _mclustAddons_softmax_Rcpp(SEXP xSEXP, SEXP vSEXP) {
+RcppExport SEXP _mclustAddonsEHA_softmax_Rcpp(SEXP xSEXP, SEXP vSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;

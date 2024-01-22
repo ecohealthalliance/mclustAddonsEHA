@@ -33,22 +33,22 @@ NumericVector rangeTransform(NumericVector& x,
 /***
 set.seed(1)
 x = rchisq(5,3)
-mclustAddons:::rangeTransform_R(x)
+mclustAddonsEHA:::rangeTransform_R(x)
 rangeTransform(x)
 
-mclustAddons:::rangeTransform_R(x, lbound = -1)
+mclustAddonsEHA:::rangeTransform_R(x, lbound = -1)
 rangeTransform(x, lbound = -1)
 
-mclustAddons:::rangeTransform_R(x, lbound = 0, ubound = 10)
+mclustAddonsEHA:::rangeTransform_R(x, lbound = 0, ubound = 10)
 rangeTransform(x, lbound = 0, ubound = 10)
 
-mclustAddons:::rangeTransform_R(x, lbound = 0, ubound = Inf)
+mclustAddonsEHA:::rangeTransform_R(x, lbound = 0, ubound = Inf)
 rangeTransform(x, lbound = 0, ubound = Inf)
 
  set.seed(123)
 x = rchisq(1e5,3)
 microbenchmark::microbenchmark(
-  "R" = mclustAddons:::rangeTransform_R(x, lbound = 0, ubound = 10),
+  "R" = mclustAddonsEHA:::rangeTransform_R(x, lbound = 0, ubound = 10),
   "Rcpp" = rangeTransform(x, lbound = 0, ubound = 10))
 */
 
@@ -75,18 +75,18 @@ NumericVector powerTransform(NumericVector& x,
 
 /***
 x = rchisq(10, 3)
-mclustAddons:::powerTransform_R(x, lambda = 1/3)
+mclustAddonsEHA:::powerTransform_R(x, lambda = 1/3)
 powerTransform(x, lambda = 1/3)
-mclustAddons:::powerTransform_R(x, lambda = 0)
+mclustAddonsEHA:::powerTransform_R(x, lambda = 0)
 powerTransform(x, lambda = 0)
 
 set.seed(123)
 x = rchisq(1e5,3)
 microbenchmark::microbenchmark(
-  "R" = mclustAddons:::powerTransform_R(x, lambda = 1/3),
+  "R" = mclustAddonsEHA:::powerTransform_R(x, lambda = 1/3),
   "Rcpp" = powerTransform(x, lambda = 1/3))
 microbenchmark::microbenchmark(
-  "R" = mclustAddons:::powerTransform_R(x, lambda = 0),
+  "R" = mclustAddonsEHA:::powerTransform_R(x, lambda = 0),
   "Rcpp" = powerTransform(x, lambda = 0))
 */
 

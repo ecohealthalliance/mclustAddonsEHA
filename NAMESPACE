@@ -1,4 +1,4 @@
-useDynLib(mclustAddons, .registration = TRUE)
+useDynLib(mclustAddonsEHA, .registration = TRUE)
 
 # importFrom(Rcpp, evalCpp)
 importFrom("Rcpp", sourceCpp)

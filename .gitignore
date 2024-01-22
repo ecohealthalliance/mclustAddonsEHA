@@ -2,4 +2,8 @@
 .Rhistory
 .RData
 .Ruserdata
+# Ignore .o or other files produced in compilation
+*.o
+*.so
+*.dll
 

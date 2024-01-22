@@ -2,46 +2,46 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 rangeTransform <- function(x, lbound = NA_real_, ubound = NA_real_) {
-    .Call(`_mclustAddons_rangeTransform`, x, lbound, ubound)
+    .Call(`_mclustAddonsEHA_rangeTransform`, x, lbound, ubound)
 }
 
 powerTransform <- function(x, lambda = 1, eps = 1e-3) {
-    .Call(`_mclustAddons_powerTransform`, x, lambda, eps)
+    .Call(`_mclustAddonsEHA_powerTransform`, x, lambda, eps)
 }
 
 rangepowerTransformDeriv_lb <- function(x, lambda = 1, lbound = NA_real_, eps = NA_real_) {
-    .Call(`_mclustAddons_rangepowerTransformDeriv_lb`, x, lambda, lbound, eps)
+    .Call(`_mclustAddonsEHA_rangepowerTransformDeriv_lb`, x, lambda, lbound, eps)
 }
 
 rangepowerTransformDeriv_lub <- function(x, lambda = 1, lbound = NA_real_, ubound = NA_real_, eps = NA_real_, tol = 1e-3) {
-    .Call(`_mclustAddons_rangepowerTransformDeriv_lub`, x, lambda, lbound, ubound, eps, tol)
+    .Call(`_mclustAddonsEHA_rangepowerTransformDeriv_lub`, x, lambda, lbound, ubound, eps, tol)
 }
 
 rangepowerTransformDeriv_unb <- function(x, lambda = 1) {
-    .Call(`_mclustAddons_rangepowerTransformDeriv_unb`, x, lambda)
+    .Call(`_mclustAddonsEHA_rangepowerTransformDeriv_unb`, x, lambda)
 }
 
 rowMax <- function(X) {
-    .Call(`_mclustAddons_rowMax`, X)
+    .Call(`_mclustAddonsEHA_rowMax`, X)
 }
 
 rowSum <- function(X) {
-    .Call(`_mclustAddons_rowSum`, X)
+    .Call(`_mclustAddonsEHA_rowSum`, X)
 }
 
 colMax <- function(X) {
-    .Call(`_mclustAddons_colMax`, X)
+    .Call(`_mclustAddonsEHA_colMax`, X)
 }
 
 colSum <- function(X) {
-    .Call(`_mclustAddons_colSum`, X)
+    .Call(`_mclustAddonsEHA_colSum`, X)
 }
 
 logsumexp_Rcpp <- function(x, v) {
-    .Call(`_mclustAddons_logsumexp_Rcpp`, x, v)
+    .Call(`_mclustAddonsEHA_logsumexp_Rcpp`, x, v)
 }
 
 softmax_Rcpp <- function(x, v) {
-    .Call(`_mclustAddons_softmax_Rcpp`, x, v)
+    .Call(`_mclustAddonsEHA_softmax_Rcpp`, x, v)
 }
 

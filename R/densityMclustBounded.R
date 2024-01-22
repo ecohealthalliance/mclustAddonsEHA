@@ -9,6 +9,7 @@ densityMclustBounded <- function(data,
                                  lambda = c(-3, 3),
                                  parallel = FALSE,
                                  seed = NULL,
+                                 prior = NULL,
                                  ...)
 {
   mc <- match.call()
@@ -114,6 +115,7 @@ densityMclustBounded <- function(data,
                    lbound = lbound,
                    ubound = ubound,
                    lambda = lambda,
+                   prior = prior,
                    ...)
   }
   BIC <- sapply(fit, function(mod) if(is.null(mod)) NA else mod$bic)
@@ -301,6 +303,7 @@ predict.densityMclustBounded <- function(object, newdata,
 densityBounded <- function(data, G, modelName, # z,
                            lambda = NULL,
                            lbound = NULL, ubound = NULL, 
+                           prior = NULL,
                            epsbound = NULL,
                            # initialization = NULL, 
                            control = emControl(),
@@ -629,7 +632,7 @@ densityBounded <- function(data, G, modelName,
   # TODO: insert the possibility of a subset. It is needed?
 
   # start algorithm
-  M_step <- mstep(modelName, data = tx, z = z)
+  M_step <- mstep(modelName, data = tx, z = z, prior = priorControl)
   if(attributes(M_step)$returnCode < 0)
   { 
     if(warn) warning("M-step init problems...")
