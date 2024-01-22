@@ -4,7 +4,7 @@
   #   requireNamespace("mclust", quietly = TRUE)
   # ))
   # startup message
-  msg <- paste("Loaded package 'mclustAddons' version", packageVersion("mclustAddons"))
+  msg <- paste("Loaded package 'mclustAddonsEHA' version", packageVersion("mclustAddonsEHA"))
   packageStartupMessage(msg)      
   invisible()
 }

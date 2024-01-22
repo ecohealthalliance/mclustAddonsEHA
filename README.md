@@ -1,3 +1,15 @@
+# mclustAddonsEHA: A fork of CRAN mclustAddons with modifications required at EcoHealth Alliance
+
+- Renamed to avoid compatibility issues
+- Changes will be offered upstream to mclust and mclustAddons
+- Install from 
+
+    install.packages('mclustAddonsEHA', repos = c('https://ecohealthalliance.r-universe.dev', getOptions('repos')))
+ 
+- Key features:
+    - Incorporation of priors into densityMclustBounded
+---
+
 # mclustAddons
 
 [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/mclustAddons)](https://cran.r-project.org/package=mclustAddons)
