@@ -7,9 +7,9 @@ densityMclustBounded <- function(data,
                                  lbound = NULL, 
                                  ubound = NULL, 
                                  lambda = c(-3, 3),
+                                 prior = NULL,
                                  parallel = FALSE,
                                  seed = NULL,
-                                 prior = NULL,
                                  ...)
 {
   mc <- match.call()
