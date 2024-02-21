@@ -407,7 +407,7 @@ densityBounded <- function(data, G, modelName, # z,
   # TODO: insert the possibility of a subset. It is needed?
 
   # start algorithm
-  M_step <- mstep(modelName, data = tx, z = z)
+  M_step <- mstep(modelName, data = tx, z = z, prior = prior)
   if(attributes(M_step)$returnCode < 0)
     { if(warn) warning("M-step init problems...")
       M_step$bic <- NA
@@ -479,7 +479,7 @@ densityBounded <- function(data, G, modelName, # z,
                                     lambda = lambda[j])
     }
     # compute EM-step
-    M_step <- mstep(modelName, data = tx, z = E_step$z)
+    M_step <- mstep(modelName, data = tx, z = E_step$z, prior = prior)
     if(attributes(M_step)$returnCode < 0)
       { if(warn) 
           warning(attributes(M_step)$WARNING, " ...")
@@ -545,6 +545,7 @@ densityBounded <- function(data, G, modelName,
                            warn = mclust.options("warn"), 
                            verbose = FALSE, 
                            eps = sqrt(.Machine$double.eps),
+                           prior = mclust::priorControl,
                            ...)
 {
   x <- as.matrix(data)
@@ -632,7 +633,7 @@ densityBounded <- function(data, G, modelName,
   # TODO: insert the possibility of a subset. It is needed?
 
   # start algorithm
-  M_step <- mstep(modelName, data = tx, z = z, prior = priorControl)
+  M_step <- mstep(modelName, data = tx, z = z, prior = prior)
   if(attributes(M_step)$returnCode < 0)
   { 
     if(warn) warning("M-step init problems...")
@@ -705,7 +706,7 @@ densityBounded <- function(data, G, modelName,
                                     lambda = lambda[j])
     }
     # compute EM-step
-    M_step <- mstep(modelName, data = tx, z = E_step$z)
+    M_step <- mstep(modelName, data = tx, z = E_step$z, prior = prior)
     if(attributes(M_step)$returnCode < 0)
     { 
       if(warn) warning(attributes(M_step)$WARNING, " ...")
@@ -751,12 +752,13 @@ densityBounded <- function(data, G, modelName,
   mod$classification <- map(mod$z)
   mod$uncertainty <- 1 - rowMax(mod$z)
   mod$density <- do.call("tdens", mod)
+  mod$prior = prior
   orderedNames <- c("data", "n", "d", "modelName", "G",
                     "lbound", "ubound", "epsbound", "lambdaInit",
                     "tdata", "loglik", "iter", "df", "bic", 
                     "parameters", "lambda", "z", 
                     "classification", "uncertainty",
-                    "density")
+                    "density", "prior")
   return(mod[orderedNames])
 }
 
